@@ -24,6 +24,10 @@ class Plugin(LedgerPlugin, QtPluginBase):
             return
         keystore = wallet.get_keystore()
         if type(keystore) == self.keystore_class and len(addrs) == 1:
+            # HW1 / Nano have no display, so they can't show addresses
+            
+            if self.get_client(keystore).is_hw1():
+                return
             def show_address():
                 keystore.thread.add(partial(self.show_address, wallet, addrs[0]))
             menu.addAction(_("Show on Ledger"), show_address)

@@ -593,6 +593,14 @@ class LedgerPlugin(HW_PluginBase):
         xpub = client.get_xpub(derivation, xtype)
         return xpub
 
+    def has_client(self, keystore: Ledger_KeyStore) -> bool:
+        """
+        Returns true if there is already a paired client for the specified keystore
+        """
+        devmgr = self.device_manager()
+        id = devmgr.xpub_id(keystore.xpub)
+        return self.client_lookup(_id) is not None
+
     def get_client(self, keystore, force_pair=True):
         # All client interaction should not be in the main GUI thread
         #assert self.main_thread != threading.current_thread()
