@@ -868,6 +868,15 @@ class TaskThread(PrintError, QThread):
         return name
 
     def run(self):
+        try:
+            # In PTVS every thread not created by Pythons threading module needs
+            # to be registered for breakpoints to work.
+            import pydevd
+            pydevd.settrace(suspend=False)
+        except ImportError:
+            # Can ignore this because it means we're not running on PTVS
+            pass
+
         self.print_error("started")
         try:
             while True:
