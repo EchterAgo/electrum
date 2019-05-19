@@ -136,6 +136,9 @@ prepare_wine() {
         LIBUSB_URL='https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/libusb-1.0.21.7z'
         LIBUSB_SHA256=acdde63a40b1477898aee6153f9d91d1a2e8a5d93f832ca8ab876498f3a6d2b8
 
+        UPX_URL='https://github.com/upx/upx/releases/download/v3.95/upx-3.95-win32.zip'
+        UPX_SHA256=f94ff30b175d125d1c238458716f5808aee222547a813918b44d0f67035c0054
+
         ## These settings probably don't need change
         export WINEPREFIX=/opt/wine64
         #export WINEARCH='win32'
@@ -219,9 +222,11 @@ prepare_wine() {
         cp libusb/MS32/dll/libusb-1.0.dll $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libusb.dll to its destination"
 
         # Install UPX
-        #wget -O upx.zip "https://downloads.sourceforge.net/project/upx/upx/3.08/upx308w.zip"
-        #unzip -o upx.zip
-        #cp upx*/upx.exe .
+        wget -O upx.zip "$UPX_URL"
+        verify_hash upx.zip $UPX_SHA256
+        unzip -o upx.zip || fail "Could not unzip UPX"
+        mkdir $WINEPREFIX/drive_c/upx
+        cp upx*/upx.exe $WINEPREFIX/drive_c/upx || fail "Could not copy UPX"
 
         # libsecp256k1 & libzbar
         mkdir -p $WINEPREFIX/drive_c/tmp
@@ -297,7 +302,7 @@ build_the_app() {
 
         # build standalone and portable versions
         info "Running Pyinstaller to build standalone and portable .exe versions ..."
-        wine "C:/python$PYTHON_VERSION/scripts/pyinstaller.exe" --noconfirm --ascii --name $NAME_ROOT-$VERSION -w deterministic.spec || fail "Pyinstaller failed"
+        wine "C:/python$PYTHON_VERSION/scripts/pyinstaller.exe" --noconfirm --ascii --upx-dir 'C:\upx' --name $NAME_ROOT-$VERSION -w deterministic.spec || fail "Pyinstaller failed"
 
 
         # set timestamps in dist, in order to make the installer reproducible
