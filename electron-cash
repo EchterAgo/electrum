@@ -311,6 +311,13 @@ def init_plugins(config, gui_name):
     from electroncash.plugins import Plugins
     return Plugins(config, gui_name)
 
+def handle_sigusr1_pdb_set_trace(signal, stack_frame):
+    import pdb
+    pdb.Pdb().set_trace(stack_frame)
+
+def handle_sigusr2_print_stack(signa, stack_frame):
+    import traceback
+    traceback.print_stack()
 
 if __name__ == '__main__':
     # The hook will only be used in the Qt GUI right now
@@ -363,6 +370,12 @@ if __name__ == '__main__':
     if config_options.get('server'):
         config_options['auto_connect'] = False
     config_options['cwd'] = os.getcwd()
+
+    # Add a signal handler for SIGUSR1 to start pdb trace if the user requested it
+    if sys.platform == 'linux' and config_options['dbg_on_sigusr']:
+        import signal
+        signal.signal(signal.SIGUSR1, handle_sigusr1_pdb_set_trace)
+        signal.signal(signal.SIGUSR2, handle_sigusr2_print_stack)
 
     # fixme: this can probably be achieved with a runtime hook (pyinstaller)
     try:
