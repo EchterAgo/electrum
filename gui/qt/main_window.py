@@ -2374,13 +2374,21 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         wallet_type = self.wallet.storage.get('wallet_type', '')
         grid = QGridLayout()
         basename = os.path.basename(self.wallet.storage.path)
-        grid.addWidget(QLabel(_("Wallet name")+ ':'), 0, 0)
+
+        grid.addWidget(QLabel(_("Wallet name") + ':'), 0, 0)
         grid.addWidget(QLabel(basename), 0, 1)
-        grid.addWidget(QLabel(_("Wallet type")+ ':'), 1, 0)
+
+        grid.addWidget(QLabel(_("Wallet type") + ':'), 1, 0)
         grid.addWidget(QLabel(wallet_type), 1, 1)
-        grid.addWidget(QLabel(_("Script type")+ ':'), 2, 0)
+
+        grid.addWidget(QLabel(_("Script type") + ':'), 2, 0)
         grid.addWidget(QLabel(self.wallet.txin_type), 2, 1)
+
+        # Add spacer
+        grid.addItem(QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum), 0, 2)
+
         vbox.addLayout(grid)
+
         if self.wallet.is_deterministic():
             mpk_text = ShowQRTextEdit()
             mpk_text.setMaximumHeight(150)
@@ -2395,14 +2403,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     return ''
                 labels = [label(i) for i in range(len(mpk_list))]
                 on_click = lambda clayout: show_mpk(clayout.selected_index())
-                labels_clayout = ChoicesLayout(_("Master Public Keys"), labels, on_click)
+                labels_clayout = ChoicesLayout(_("Master Public Keys") + ':', labels, on_click)
                 vbox.addLayout(labels_clayout.layout())
             else:
-                vbox.addWidget(QLabel(_("Master Public Key")))
+                vbox.addWidget(QLabel(_("Master Public Key") + ':'))
             show_mpk(0)
             vbox.addWidget(mpk_text)
-        vbox.addStretch(1)
+        
+        #vbox.addStretch(1)
         vbox.addLayout(Buttons(CloseButton(dialog)))
+
         dialog.setLayout(vbox)
         dialog.exec_()
 
