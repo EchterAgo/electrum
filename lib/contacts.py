@@ -112,10 +112,12 @@ class Contacts(dict):
         except DNSException as e:
             print_error('Error resolving openalias: ', str(e))
             return None
-        prefix = 'bch'
         for record in records:
             string = record.strings[0].decode('utf-8')
-            if string.startswith('oa1:' + prefix):
+            prefix = self.find_regex(string, r'oa1:([A-Za-z0-9]+)')
+            if not prefix:
+                return None
+            if prefix in ('bch', 'bitcoincash'):
                 address = self.find_regex(string, r'recipient_address=([A-Za-z0-9]+)')
                 name = self.find_regex(string, r'recipient_name=([^;]+)')
                 if not name:
