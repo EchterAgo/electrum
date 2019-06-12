@@ -72,7 +72,7 @@ git clone "https://github.com/squashfskit/squashfskit.git" "$BUILDDIR/squashfski
 (
     cd "$BUILDDIR/squashfskit"
     git checkout -b pinned "$SQUASHFSKIT_COMMIT"
-    make -C squashfs-tools mksquashfs
+    make -C squashfs-tools XZ_SUPPORT=1 mksquashfs
 )
 MKSQUASHFS="$BUILDDIR/squashfskit/squashfs-tools/mksquashfs"
 
