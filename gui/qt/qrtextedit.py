@@ -43,7 +43,11 @@ class ScanQRTextEdit(ButtonsTextEdit, MessageBoxMixin):
         self.addButton(":icons/file.png", self.file_input, _("Read text or image file"))
         icon = ":icons/qrcode_white.svg" if ColorScheme.dark_scheme else ":icons/qrcode.svg"
         self.addButton(icon, self.qr_input, _("Read QR code"))
+        self.addButton(":icons/crop.svg", self.screenshot_input, _("Read from screenshot"))
         run_hook('scan_text_edit', self)
+
+    def screenshot_input(self):
+        pass
 
     def file_input(self):
         fileName, __ = QFileDialog.getOpenFileName(self, _('Load a text file or scan an image for QR codes'))
