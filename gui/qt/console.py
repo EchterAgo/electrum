@@ -16,129 +16,6 @@ from electroncash.i18n import _
 from .util import ColorScheme, MONOSPACE_FONT
 
 
-class ConsoleWarningOverlay(QtWidgets.QWidget):
-    STYLESHEET = '''
-    QLabel, QLabel link {
-        color: rgb(0, 64, 0);
-        background-color: rgb(200, 220, 200, 215);
-        border-color: rgb(16, 120, 16, 215);
-    }
-    '''
-
-    STYLESHEET_DARK = '''
-    QLabel, QLabel link {
-        color: rgb(180, 220, 180);
-        background-color: rgb(3, 12, 3, 215);
-        border-color: rgb(3, 96, 3, 215);
-    }
-    '''
-
-    STYLESHEET_COMMON = '''
-    QLabel, QLabel link {
-        border: 2px solid;
-        padding: 16px;
-        font: 16pt;
-    }
-    '''
-
-    BORDER_RADIUS = 16
-    STYLESHEET_BORDER_RADIUS = '''
-    QLabel, QLabel link {{
-        border-radius: {0}px;
-    }}
-    '''.format(BORDER_RADIUS)
-
-    CONFIRM_TEXT = _("I UNDERSTAND THE RISK").upper()
-
-    acknowledged = QtCore.pyqtSignal(bool)
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        util.finalization_print_error(self)
-
-        warning_fmt = '<h1 align="center">{0}</h1><p align=center><font size=-1>{1} {2}</font></p><p align=center><font size=-1><a href="{3}" {5}>{3}</a></font></p><p align="center">{4}</p>'
-        warning_text = warning_fmt.format(
-            _('WARNING'),
-            _('Do not enter code here that you don\'t understand. Executing the wrong code could '
-              'lead to your coins being irreversibly lost.'),
-            _("If someone you do not trust wants you to enter something here, that person might "
-              "be attempting a social engineering / phishing attack on you."),
-            'https://en.wikipedia.org/wiki/Social_engineering_(security)',
-            _("Type: '{}' below to proceed").format('<b>' + self.CONFIRM_TEXT + '</b>'),
-            'style="color: #3399ff;"' if ColorScheme.dark_scheme else '',
-        )
-
-        style_sheet = self.STYLESHEET_DARK if ColorScheme.dark_scheme else self.STYLESHEET
-        style_sheet = style_sheet + self.STYLESHEET_COMMON
-        style_sheet = style_sheet + self.STYLESHEET_BORDER_RADIUS
-        self.setStyleSheet(style_sheet)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.setContentsMargins(35,35,35,35)
-        self.setLayout(layout)
-
-        warning_label = QtWidgets.QLabel(warning_text)
-        warning_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                    QtWidgets.QSizePolicy.MinimumExpanding)
-        warning_label.setWordWrap(True)
-        warning_label.setOpenExternalLinks(True)
-        layoutLbl = QtWidgets.QVBoxLayout()
-        layoutLbl.addWidget(warning_label)
-        layout.addLayout(layoutLbl, 1)
-
-        if not ColorScheme.dark_scheme:
-            drop_shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
-            drop_shadow_effect.setBlurRadius(5.0)
-            drop_shadow_effect.setOffset(2.0, 2.0)
-            drop_shadow_effect.setColor(QtGui.QColor(63,63,63,100))
-            warning_label.setGraphicsEffect(drop_shadow_effect)
-
-        hbox_layout = QtWidgets.QHBoxLayout()
-        layout.addLayout(hbox_layout)
-
-        fixed = QtWidgets.QSizePolicy.Fixed
-        hbox_layout.addSpacerItem(QtWidgets.QSpacerItem(self.BORDER_RADIUS, 0, fixed, fixed))
-
-        self.input_edit = QtWidgets.QLineEdit()
-        self.input_edit.textChanged.connect(self.on_text_changed)
-        self.input_edit.returnPressed.connect(self.on_confirm)
-        hbox_layout.addWidget(self.input_edit)
-
-        self.confirm_btn = QtWidgets.QPushButton(_("&Confirm"))
-        self.confirm_btn.setEnabled(False)
-        self.confirm_btn.clicked.connect(self.on_confirm)
-        hbox_layout.addWidget(self.confirm_btn)
-
-        self.dontaskagain_cbx = QtWidgets.QCheckBox(_("&Don't ask again"))
-        hbox_layout.addWidget(self.dontaskagain_cbx)
-
-        hbox_layout.addSpacerItem(QtWidgets.QSpacerItem(self.BORDER_RADIUS, 0, fixed, fixed))
-
-    def input_ok(self) -> bool:
-        """
-        Returns true if the value in the text input field matches the confirmation text
-        """
-        return self.input_edit.text().strip().upper() == self.CONFIRM_TEXT
-
-    @QtCore.pyqtSlot()
-    def on_text_changed(self):
-        """
-        Enables the confirm button when the input text matches
-        """
-        self.confirm_btn.setEnabled(self.input_ok())
-
-    @QtCore.pyqtSlot()
-    def on_confirm(self):
-        """
-        Closes the dialog if the input text matches
-        """
-        if not self.input_ok():
-            return
-
-        self.hide()
-        self.acknowledged.emit(self.dontaskagain_cbx.isChecked())
-
 class ConsoleTextEdit(QtWidgets.QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -189,7 +66,6 @@ class ConsoleTextEdit(QtWidgets.QPlainTextEdit):
         super(ConsoleTextEdit, self).keyPressEvent(event)
 
 class Console(QtWidgets.QWidget):
-    CONFIG_DONTASKAGAIN_KEY = 'console_warning_dontaskagain'
 
     def __init__(self, wallet, prompt='>> ', startup_message='', parent=None):
         super().__init__(parent)
@@ -215,29 +91,6 @@ class Console(QtWidgets.QWidget):
         self.warningOverlay = None
 
         wallet_storage = wallet.storage
-        config_dontaskagain = wallet_storage.get(self.CONFIG_DONTASKAGAIN_KEY, False)
-
-        # Don't show the warning if the user chose to have it not shown again
-        if not config_dontaskagain:
-            self.warningOverlay = ConsoleWarningOverlay(self)
-            self.warningOverlay.resize(self.size())
-
-            fp = self.editor.focusPolicy()
-            blur_effect = QtWidgets.QGraphicsBlurEffect()
-            blur_effect.setBlurRadius(5)
-            self.editor.setGraphicsEffect(blur_effect)
-            self.editor.setFocusPolicy(QtCore.Qt.NoFocus)
-            self.editor.setFocusProxy(self.warningOverlay)
-            def on_acknowledged(dontaskagain: bool):
-                wallet_storage.put(self.CONFIG_DONTASKAGAIN_KEY, dontaskagain or None)  # None deletes the key
-                self.editor.setGraphicsEffect(None)
-                self.editor.setFocusPolicy(fp)
-                self.editor.setFocusProxy(None)
-                # Focus the editor after confirming
-                self.editor.setFocus()
-                self.warningOverlay.deleteLater()
-                self.warningOverlay = None
-            self.warningOverlay.acknowledged.connect(on_acknowledged)
 
     def resizeEvent(self, e):
         super().resizeEvent(e)
