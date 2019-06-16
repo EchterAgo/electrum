@@ -139,7 +139,7 @@ prepare_wine() {
         LIBUSB_SHA256=acdde63a40b1477898aee6153f9d91d1a2e8a5d93f832ca8ab876498f3a6d2b8
 
         PYINSTALLER_REPO='https://github.com/EchterAgo/pyinstaller.git'
-        PYINSTALLER_COMMIT=d1cdd726d6a9edc70150d5302453fb90fdd09bf2
+        PYINSTALLER_COMMIT=47582739c1471de720c86c13345149a045d50937
 
         ## These settings probably don't need change
         export WINEPREFIX=/opt/wine64
