@@ -132,8 +132,8 @@ prepare_wine() {
         pushd "$here"
         here=`pwd`
         # Please update these carefully, some versions won't work under Wine
-        NSIS_URL='https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/nsis-3.02.1-setup.exe'
-        NSIS_SHA256=736c9062a02e297e335f82252e648a883171c98e0d5120439f538c81d429552e
+        NSIS_URL='https://downloads.sourceforge.net/project/nsis/NSIS%203/3.04/nsis-3.04-setup.exe'
+        NSIS_SHA256=4e1db5a7400e348b1b46a4a11b6d9557fd84368e4ad3d4bc4c1be636c89638aa
 
         LIBUSB_URL='https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/libusb-1.0.21.7z'
         LIBUSB_SHA256=acdde63a40b1477898aee6153f9d91d1a2e8a5d93f832ca8ab876498f3a6d2b8
