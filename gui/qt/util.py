@@ -688,6 +688,71 @@ class ButtonsTextEdit(OverlayControlMixin, QPlainTextEdit):
         self.setText = self.setPlainText
         self.text = self.toPlainText
 
+from electroncash.util import ThreadJob, DaemonThread
+class Hax_TaskThreadWorkAlike(ThreadJob, QObject):
+    '''ThreadJob that runs background tasks.  Callbacks are guaranteed
+    to happen in the context of its parent.'''
+
+    Task = namedtuple("Task", "task cb_success cb_done cb_error")
+    doneSig = pyqtSignal(object, object, object)
+
+    def __init__(self, daemon, on_error=None, *, name=None):
+        QObject.__init__(self, None)
+        if name is not None:
+            self.setObjectName(name)
+        assert isinstance(daemon, DaemonThread)
+        self.daemon = daemon
+        self.on_error = on_error
+        self._lock = threading.Lock()
+        self.doneSig.connect(self.on_done)
+        Weak.finalization_print_error(self)  # track task thread lifecycle in debug log
+        self.tasks = list()
+        self.start()
+
+    def start(self): self.daemon.add_jobs(self.thread_jobs())
+
+    def thread_jobs(self): return [self]
+
+    def add(self, task, on_success=None, on_done=None, on_error=None):
+        with self._lock:
+            on_error = on_error or self.on_error
+            self.tasks.append(__class__.Task(task, on_success, on_done, on_error))
+
+    def diagnostic_name(self):
+        name = self.__class__.__name__
+        o = self.objectName() or ''
+        if o:
+            name += '/' + o
+        return name
+
+    def run(self):
+        ''' called in daemon thread's context '''
+        with self._lock:
+            mytasks = self.tasks
+            self.tasks = list()
+        for task in mytasks:
+            try:
+                self.print_error("running", task)
+                result = task.task()
+                self.doneSig.emit(result, task.cb_done, task.cb_success)
+            except BaseException:
+                self.doneSig.emit(sys.exc_info(), task.cb_done, task.cb_error)
+
+    def on_done(self, result, cb_done, cb):
+        # This runs in the context of the thread that created this object
+        if cb_done:
+            cb_done()
+        if cb:
+            cb(result)
+
+    def stop(self, *, waitTime = None):
+        ''' pass optional time to wait in seconds (float).  If no waitTime
+        specified, will not wait. '''
+        self.daemon.remove_jobs(self.thread_jobs())
+
+    def isRunning(self):
+        return all(j in self.daemon.jobs for j in self.thread_jobs())
+
 class TaskThread(PrintError, QThread):
     '''Thread that runs background tasks.  Callbacks are guaranteed
     to happen in the context of its parent.'''

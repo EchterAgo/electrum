@@ -211,7 +211,7 @@ class QtPluginBase(object):
             handler = self.create_handler(window)
             handler.button = button
             keystore.handler = handler
-            keystore.thread = TaskThread(window, window.on_error, name = wallet.diagnostic_name() + f'/keystore{i}')
+            keystore.thread = Hax_TaskThreadWorkAlike(window.gui_object.plugins, window.on_error, name = wallet.diagnostic_name() + f'/keystore{i}')
             # Trigger a pairing
             keystore.thread.add(partial(self.get_client, keystore))
 
