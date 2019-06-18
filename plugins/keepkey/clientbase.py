@@ -214,7 +214,7 @@ class KeepKeyClientBase(GuiMixin, PrintError):
     def close(self):
         '''Called when Our wallet was closed or the device removed.'''
         self.print_error("closing client")
-        self.clear_session()
+        #self.clear_session()
         # Release the device
         self.transport.close()
 
