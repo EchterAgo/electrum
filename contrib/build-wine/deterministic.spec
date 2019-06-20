@@ -130,7 +130,7 @@ exe_standalone = EXE(
     strip=None,
     upx=False,
     icon=home+'icons/electron.ico',
-    console=False)
+    console=True)
 
 exe_portable = EXE(
     pyz,
@@ -142,7 +142,7 @@ exe_portable = EXE(
     strip=None,
     upx=False,
     icon=home+'icons/electron.ico',
-    console=False)
+    console=True)
 
 #####
 # exe and separate files that NSIS uses to build installer "setup" exe
@@ -156,7 +156,7 @@ exe_dependent = EXE(
     strip=None,
     upx=False,
     icon=home+'icons/electron.ico',
-    console=False)
+    console=True)
 
 coll = COLLECT(
     exe_dependent,
