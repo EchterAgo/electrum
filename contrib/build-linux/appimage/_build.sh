@@ -211,7 +211,7 @@ for component in connectivity declarative help location multimedia quickcontrols
 done
 rm -rf "$PYDIR"/site-packages/PyQt5/Qt/{qml,libexec}
 rm -rf "$PYDIR"/site-packages/PyQt5/{pyrcc.so,pylupdate.so,uic}
-rm -rf "$PYDIR"/site-packages/PyQt5/Qt/plugins/{bearer,gamepads,geometryloaders,geoservices,playlistformats,position,printsupport,renderplugins,sceneparsers,sensors,sqldrivers,texttospeech,webview}
+rm -rf "$PYDIR"/site-packages/PyQt5/Qt/plugins/{bearer,gamepads,geometryloaders,geoservices,playlistformats,position,printsupport,renderplugins,sceneparsers,sensorgestures,sensors,sqldrivers,texttospeech,webview}
 for component in Bluetooth Concurrent Designer Help Location NetworkAuth Nfc Positioning PositioningQuick PrintSupport Qml Quick Sensors SerialPort Sql Test Web Xml ; do
 
     rm -rf "$PYDIR"/site-packages/PyQt5/Qt/lib/libQt5${component}*
