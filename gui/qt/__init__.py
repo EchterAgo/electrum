@@ -53,7 +53,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from electroncash.i18n import _, set_language
+from electroncash.i18n import _
 from electroncash.plugins import run_hook
 from electroncash import WalletStorage
 from electroncash.util import (UserCancelled, PrintError, print_error,
@@ -84,7 +84,6 @@ class ElectrumGui(QObject, PrintError):
         super(__class__, self).__init__() # QObject init
         assert __class__.instance is None, "ElectrumGui is a singleton, yet an instance appears to already exist! FIXME!"
         __class__.instance = self
-        set_language(config.get('language'))
 
         self.config = config
         self.daemon = daemon

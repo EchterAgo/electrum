@@ -105,7 +105,7 @@ from electroncash.wallet import Wallet, ImportedPrivkeyWallet, ImportedAddressWa
 from electroncash.storage import WalletStorage
 from electroncash.util import (print_msg, print_stderr, json_encode, json_decode,
                                set_verbosity, InvalidPassword)
-from electroncash.i18n import _
+from electroncash.i18n import set_language
 from electroncash.commands import get_parser, known_commands, Commands, config_variables
 from electroncash import daemon
 from electroncash import keystore
@@ -386,6 +386,8 @@ if __name__ == '__main__':
     # todo: defer this to gui
     config = SimpleConfig(config_options)
     cmdname = config.get('cmd')
+
+    set_language(config.get('language'))
 
     # run non-RPC commands separately
     if cmdname in ['create', 'restore']:
