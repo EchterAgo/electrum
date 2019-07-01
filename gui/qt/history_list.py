@@ -97,6 +97,8 @@ class HistoryList(MyTreeWidget):
 
     @classmethod
     def _get_icon_for_status(cls, status):
+        import random
+        status = random.randint(4, 9)
         ret = cls.statusIcons.get(status)
         if not ret:
             cls.statusIcons[status] = ret = QIcon(":icons/" + TX_ICONS[status])
