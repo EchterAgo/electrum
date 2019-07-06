@@ -58,12 +58,12 @@
   ;VIAddVersionKey - Adds a field in the Version Tab of the File Properties. This can either be a field provided by the system or a user defined field.
   VIAddVersionKey ProductName "${PRODUCT_NAME} Installer"
   VIAddVersionKey Comments "The installer for ${PRODUCT_NAME}"
-  VIAddVersionKey CompanyName "${PRODUCT_NAME}"
-  VIAddVersionKey LegalCopyright "2013-2019 ${PRODUCT_PUBLISHER} and Electrum Technologies GmbH"
+  VIAddVersionKey CompanyName "${PRODUCT_PUBLISHER}"
+  VIAddVersionKey LegalCopyright "Copyright © 2013 - 2019 ${PRODUCT_PUBLISHER} and Electrum Technologies GmbH"
   VIAddVersionKey FileDescription "${PRODUCT_NAME} Installer"
   VIAddVersionKey FileVersion ${PRODUCT_VERSION}
   VIAddVersionKey ProductVersion ${PRODUCT_VERSION}
-  VIAddVersionKey InternalName "${PRODUCT_NAME} Installer"
+  VIAddVersionKey InternalName "${PRODUCT_NAME}.exe"
   VIAddVersionKey LegalTrademarks "${PRODUCT_NAME} is a trademark of ${PRODUCT_PUBLISHER}"
   VIAddVersionKey OriginalFilename "${PRODUCT_NAME}.exe"
 
