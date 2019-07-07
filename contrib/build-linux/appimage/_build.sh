@@ -166,8 +166,9 @@ cp -f /usr/lib/x86_64-linux-gnu/libusb-1.0.so "$APPDIR"/usr/lib/x86_64-linux-gnu
 
 # Ubuntu 14.04 lacks a recent enough libfreetype / libfontconfig, so we include one here
 mkdir "$APPDIR"/usr/lib/fonts
-cp -f /usr/lib/x86_64-linux-gnu/libfreetype.so.6 "$APPDIR"/usr/lib/fonts || fail "Could not copy libfreetype"
-cp -f /usr/lib/x86_64-linux-gnu/libfontconfig.so.1 "$APPDIR"/usr/lib/fonts || fail "Could not copy libfontconfig"
+for lib in libfreetype.so.6 libfontconfig.so.1 libharfbuzz.so.0 libgraphite2.so.3 ; do
+  cp -f /usr/lib/x86_64-linux-gnu/$lib "$APPDIR"/usr/lib/fonts || fail "Could not copy $lib"
+done
 cp "$CONTRIB/build-linux/appimage/test-freetype.py" "$APPDIR"
 
 # libfreetype needs a recent enough zlib
