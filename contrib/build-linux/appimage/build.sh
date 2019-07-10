@@ -61,7 +61,7 @@ $SUDO docker build -t electroncash-appimage-builder-img-$DOCKER_SUFFIX \
     || fail "Failed to create docker image"
 
 $SUDO docker run --rm electroncash-appimage-builder-img-$DOCKER_SUFFIX \
-    apt-get update && apt-get --just-print upgrade
+    /bin/sh -c "apt-get update && apt-get --just-print upgrade"
 
 DOCKER_SUFFIX=ub1604_fontconfig
 
