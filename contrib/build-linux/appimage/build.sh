@@ -1,21 +1,18 @@
 #!/bin/bash
 
-here=$(dirname "$0")
-test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
+set -e
 
+here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
+test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
 . "$here"/../../base.sh # functions we use below (fail, et al)
 
-if [ ! -z "$1" ]; then
-    REV="$1"
-else
+if [ -z "$1" ]; then
     fail "Please specify a release tag or branch to build (eg: master or 4.0.0, etc)"
 fi
 
-if [ ! -d 'contrib' ]; then
-    fail "Please run this script form the top-level Electron Cash git directory"
-fi
-
-pushd .
+REV="$1"
+PROJECTDIR="$here"/../../..
+OUTDIR="$PROJECTDIR"/dist
 
 docker_version=`docker --version`
 
@@ -28,10 +25,8 @@ if [ "$?" != 0 ]; then
     echo '$ sudo apt-get update'
     echo '$ sudo apt-get install -y docker-ce'
     echo ''
-    fail "Docker is required to build for Windows"
+    fail "Docker is required to build for Linux"
 fi
-
-set -e
 
 info "Using docker: $docker_version"
 
@@ -56,46 +51,51 @@ DOCKER_SUFFIX=ub1604
 
 info "Creating docker image ..."
 $SUDO docker build -t electroncash-appimage-builder-img-$DOCKER_SUFFIX \
-    -f contrib/build-linux/appimage/Dockerfile_$DOCKER_SUFFIX \
-    contrib/build-linux/appimage \
+    -f "$here"/Dockerfile_$DOCKER_SUFFIX \
+    "$here" \
     || fail "Failed to create docker image"
 
 # This is the place where we checkout and put the exact revision we want to work
 # on. Docker will run mapping this directory to /opt/electroncash
-# which inside wine will look lik c:\electroncash
-FRESH_CLONE=`pwd`/contrib/build-linux/fresh_clone
-FRESH_CLONE_DIR=$FRESH_CLONE/$GIT_DIR_NAME
+# which inside wine will look like c:\electroncash
+FRESH_CLONE_DIR="$here"/fresh_clone
 
 (
-    $SUDO rm -fr $FRESH_CLONE && \
-        mkdir -p $FRESH_CLONE && \
-        cd $FRESH_CLONE  && \
-        git clone $GIT_REPO && \
-        cd $GIT_DIR_NAME && \
-        git checkout $REV
+    $SUDO rm -fr "$FRESH_CLONE_DIR"
+    git clone --reference "$PROJECTDIR" --dissociate "$GIT_REPO" "$FRESH_CLONE_DIR"
+    cd "$FRESH_CLONE_DIR"
+    git checkout -b build "$REV"
+    git submodule init
+    git config --file .gitmodules --get-regexp path | awk '{ print $2 }' | while read submodule ; do
+        git submodule update --dissociate --reference "$PROJECTDIR"/.git/modules/$submodule $submodule
+    done
 ) || fail "Could not create a fresh clone from git"
 
+CACHE_DIR="$here"/.cache
+
+info "Starting docker container ..."
+
 (
+    mkdir -p "$CACHE_DIR" || true
     # NOTE: We propagate forward the GIT_REPO override to the container's env,
     # just in case it needs to see it.
     $SUDO docker run -it \
     -e GIT_REPO="$GIT_REPO" \
     --name electroncash-appimage-builder-cont-$DOCKER_SUFFIX \
-    -v $FRESH_CLONE_DIR:/opt/electroncash \
+    -v "$FRESH_CLONE_DIR":/opt/electroncash \
+    -v "$CACHE_DIR":/opt/electroncash/contrib/build-linux/appimage/.cache \
     --rm \
     --workdir /opt/electroncash/contrib/build-linux/appimage \
     electroncash-appimage-builder-img-$DOCKER_SUFFIX \
-    ./_build.sh $REV
+    ./_build.sh
 ) || fail "Build inside docker container failed"
 
-popd
-
 info "Copying built files out of working clone..."
-mkdir -p dist/
-cp -fpvR $FRESH_CLONE_DIR/dist/* dist/ || fail "Could not copy files"
+mkdir -p "$OUTDIR"
+cp -fpvR $FRESH_CLONE_DIR/dist/* "$OUTDIR"/ || fail "Could not copy files"
 
-info "Removing $FRESH_CLONE ..."
-$SUDO rm -fr $FRESH_CLONE
+info "Removing $FRESH_CLONE_DIR ..."
+$SUDO rm -fr "$FRESH_CLONE_DIR"
 
 echo ""
-info "Done. Built AppImage has been placed in dist/"
+info "Done. Built AppImage has been placed in $OUTDIR"

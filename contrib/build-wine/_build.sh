@@ -1,34 +1,30 @@
 #!/bin/bash
 
-here=$(dirname "$0")
-test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
-pushd "$here"
-here=`pwd`  # get an absolute path
-popd
-. "$here"/../base.sh # functions we use below (fail, et al)
-
-if [ ! -z "$1" ]; then
-    to_build="$1"
-else
-    fail "Please specify a release tag or branch to build (eg: master or 4.0.0, etc)"
-fi
-
 set -e
 
-git checkout "$to_build" || fail "Could not branch or tag $to_build"
+here=$(dirname $(realpath "$0"))
+test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
+. "$here"/../base.sh # functions we use below (fail, et al)
+
+PROJECT_ROOT="$here"/../..
+CONTRIB="$PROJECT_ROOT/contrib"
+DISTDIR="$PROJECT_ROOT/dist"
+CACHEDIR="$CONTRIB/build-wine/.cache"
 
 GIT_COMMIT_HASH=$(git rev-parse HEAD)
+VERSION=$(git describe --tags --dirty --always)
 
-info "Clearing $here/build and $here/dist..."
-rm "$here"/build/* -fr
-rm "$here"/dist/* -fr
+mkdir -p "$CACHEDIR" "$DISTDIR"
 
-rm -fr /tmp/electrum-build
-mkdir -p /tmp/electrum-build
+# Please update these carefully, some versions won't work under Wine
+download_if_not_exist "$CACHEDIR/nsis.exe" "https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/nsis-3.02.1-setup.exe"
+verify_hash "$CACHEDIR/nsis.exe" "736c9062a02e297e335f82252e648a883171c98e0d5120439f538c81d429552e"
 
-info "Refreshing submodules..."
-git submodule init
-git submodule update
+download_if_not_exist "$CACHEDIR/libusb.7z" "https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/libusb-1.0.21.7z"
+verify_hash "$CACHEDIR/libusb.7z" "acdde63a40b1477898aee6153f9d91d1a2e8a5d93f832ca8ab876498f3a6d2b8"
+
+PYINSTALLER_REPO='https://github.com/EchterAgo/pyinstaller.git'
+PYINSTALLER_COMMIT=d1cdd726d6a9edc70150d5302453fb90fdd09bf2
 
 build_secp256k1() {
     info "Building libsecp256k1..."
@@ -42,6 +38,7 @@ build_secp256k1() {
             ./autogen.sh || fail "Could not run autogen.sh for secp256k1"
             # Note: always set --host along with --build.
             LDFLAGS="-Wl,--no-insert-timestamp -Wl,-no-undefined -Wl,--no-undefined" ./configure \
+                --cache-file="$CACHEDIR/secp256k1.config.cache" \
                 --host=$1 \
                 --build=x86_64-pc-linux-gnu \
                 --enable-module-recovery \
@@ -87,6 +84,7 @@ build_zbar() {
             # autoconf docs say you should.
             # https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Hosts-and-Cross_002dCompilation.html
             LDFLAGS="-Wl,--no-insert-timestamp" ./configure \
+                --cache-file="$CACHEDIR/zbar.config.cache" \
                 --host=$1 \
                 --build=x86_64-pc-linux-gnu \
                 --with-x=no \
@@ -131,15 +129,6 @@ prepare_wine() {
         set -e
         pushd "$here"
         here=`pwd`
-        # Please update these carefully, some versions won't work under Wine
-        NSIS_URL='https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/nsis-3.02.1-setup.exe'
-        NSIS_SHA256=736c9062a02e297e335f82252e648a883171c98e0d5120439f538c81d429552e
-
-        LIBUSB_URL='https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/libusb-1.0.21.7z'
-        LIBUSB_SHA256=acdde63a40b1477898aee6153f9d91d1a2e8a5d93f832ca8ab876498f3a6d2b8
-
-        PYINSTALLER_REPO='https://github.com/EchterAgo/pyinstaller.git'
-        PYINSTALLER_COMMIT=d1cdd726d6a9edc70150d5302453fb90fdd09bf2
 
         ## These settings probably don't need change
         export WINEPREFIX=/opt/wine64
@@ -176,21 +165,21 @@ prepare_wine() {
         # Install Python
         for msifile in core dev exe lib pip tools; do
             info "Installing $msifile..."
-            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/win32/${msifile}.msi"
-            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/win32/${msifile}.msi.asc"
-            verify_signature "${msifile}.msi.asc" $KEYRING_PYTHON_DEV
-            wine msiexec /i "${msifile}.msi" /qb TARGETDIR=C:/python$PYTHON_VERSION || fail "Failed to install Python component: ${msifile}"
+            download_if_not_exist "$CACHEDIR/$msifile.msi" "https://www.python.org/ftp/python/$PYTHON_VERSION/win32/$msifile.msi"
+            download_if_not_exist "$CACHEDIR/$msifile.msi.asc" "https://www.python.org/ftp/python/$PYTHON_VERSION/win32/$msifile.msi.asc"
+            verify_signature "$CACHEDIR/$msifile.msi.asc" $KEYRING_PYTHON_DEV
+            wine msiexec /i "$CACHEDIR/$msifile.msi" /qb TARGETDIR=C:/python$PYTHON_VERSION || fail "Failed to install Python component: $msifile"
         done
 
         info "Upgrading pip ..."
         # upgrade pip
-        $PYTHON -m pip install pip --upgrade
+        $PYTHON -m pip install --cache-dir "$CACHEDIR/pip_cache" pip --upgrade
 
         # The below requirements-wine-build.txt uses hashed packages that we
         # need for pyinstaller and other parts of the build.  Using a hashed
         # requirements file hardens the build against dependency attacks.
         info "Installing build requirements from requirements-wine-build.txt ..."
-        $PYTHON -m pip install --no-warn-script-location -I -r $here/requirements-wine-build.txt || fail "Failed to install build requirements"
+        $PYTHON -m pip install --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -I -r $here/requirements-wine-build.txt || fail "Failed to install build requirements"
 
         info "Compiling PyInstaller bootloader with AntiVirus False-Positive Protection™ ..."
         mkdir pyinstaller
@@ -200,7 +189,7 @@ prepare_wine() {
             git init
             git remote add origin $PYINSTALLER_REPO
             git fetch --depth 1 origin $PYINSTALLER_COMMIT
-            git checkout FETCH_HEAD
+            git checkout -b build FETCH_HEAD
             rm -fv PyInstaller/bootloader/Windows-*/run*.exe || true  # Make sure EXEs that came with repo are deleted -- we rebuild them and need to detect if build failed
             echo "const char *ec_tag = \"tagged by Electron-Cash@$GIT_COMMIT_HASH\";" >> ./bootloader/src/pyi_main.c
             pushd bootloader
@@ -219,18 +208,14 @@ prepare_wine() {
         wine "C:/python$PYTHON_VERSION/scripts/pyinstaller.exe" -v || fail "Pyinstaller installed but cannot be run."
 
         info "Installing Packages from requirements-binaries ..."
-        $PYTHON -m pip install --no-warn-script-location -r ../../deterministic-build/requirements-binaries.txt || fail "Failed to install requirements-binaries"
+        $PYTHON -m pip install --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -r ../../deterministic-build/requirements-binaries.txt || fail "Failed to install requirements-binaries"
 
         info "Installing NSIS ..."
         # Install NSIS installer
-        wget -O nsis.exe "$NSIS_URL"
-        verify_hash nsis.exe $NSIS_SHA256
-        wine nsis.exe /S || fail "Could not run nsis"
+        wine "$CACHEDIR"/nsis.exe /S || fail "Could not run nsis"
 
         info "Installing libusb ..."
-        wget -O libusb.7z "$LIBUSB_URL"
-        verify_hash libusb.7z "$LIBUSB_SHA256"
-        7z x -olibusb libusb.7z
+        7z x -olibusb "$CACHEDIR"/libusb.7z
         mkdir -p $WINEPREFIX/drive_c/tmp
         cp libusb/MS32/dll/libusb-1.0.dll $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libusb.dll to its destination"
 
@@ -282,7 +267,6 @@ build_the_app() {
         pushd "$here"/../..  # go to top level
 
 
-        VERSION=`git describe --tags`
         info "Version to release: $VERSION"
         info "Fudging timestamps on all files for determinism ..."
         find -exec touch -d '2000-11-11T11:11:11+00:00' {} +
@@ -293,8 +277,8 @@ build_the_app() {
 
         # Install frozen dependencies
         info "Installing frozen dependencies ..."
-        $PYTHON -m pip install --no-warn-script-location -r "$here"/../deterministic-build/requirements.txt || fail "Failed to install requirements"
-        $PYTHON -m pip install --no-warn-script-location -r "$here"/../deterministic-build/requirements-hw.txt || fail "Failed to install requirements-hw"
+        $PYTHON -m pip install --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -r "$here"/../deterministic-build/requirements.txt || fail "Failed to install requirements"
+        $PYTHON -m pip install --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" -r "$here"/../deterministic-build/requirements-hw.txt || fail "Failed to install requirements-hw"
 
         pushd $WINEPREFIX/drive_c/electroncash
         $PYTHON setup.py install || fail "Failed setup.py install"
@@ -319,7 +303,7 @@ build_the_app() {
         wine "$WINEPREFIX/drive_c/Program Files (x86)/NSIS/makensis.exe" /DPRODUCT_VERSION=$VERSION electron-cash.nsi || fail "makensis failed"
 
         cd dist
-        mv $NAME_ROOT-setup.exe $NAME_ROOT-$VERSION-setup.exe  || fail "Failed to move $NAME_ROOT-$VERSION-setup.exe to the output dist/ directory"
+        mv $NAME_ROOT-setup.exe $NAME_ROOT-$VERSION-setup.exe  || fail "Failed to rename output to $NAME_ROOT-$VERSION-setup.exe"
 
         popd
 

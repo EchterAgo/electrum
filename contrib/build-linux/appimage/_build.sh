@@ -2,20 +2,26 @@
 
 set -e
 
-PROJECT_ROOT="$(dirname "$(readlink -e "$0")")/../../.."
+here=$(dirname $(realpath "$0"))
+test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
+. "$here"/../../base.sh # functions we use below (fail, et al)
+
+PROJECT_ROOT="$here"/../../..
 CONTRIB="$PROJECT_ROOT/contrib"
 DISTDIR="$PROJECT_ROOT/dist"
-BUILDDIR="$CONTRIB/build-linux/appimage/build/appimage"
+BUILDDIR="$CONTRIB/build-linux/appimage/build"
 APPDIR="$BUILDDIR/Electron-Cash.AppDir"
-CACHEDIR="$CONTRIB/build-linux/appimage/.cache/appimage"
+CACHEDIR="$CONTRIB/build-linux/appimage/.cache"
 PYDIR="$APPDIR"/usr/lib/python3.6
 
 # pinned versions
 SQUASHFSKIT_COMMIT="ae0d656efa2d0df2fcac795b6823b44462f19386"
 PKG2APPIMAGE_COMMIT="eb8f3acdd9f11ab19b78f5cb15daa772367daf15"
 
+# Update this after updating Python to make caching work
+PYTHON_BINARY_HASH="5ada90b8914daa9b66a04d39bf540eb476b31e60c02049db85637d50fc4aeacb"
 
-VERSION=`git describe --tags --dirty --always`
+VERSION=$(git describe --tags --dirty --always)
 APPIMAGE="$DISTDIR/Electron-Cash-$VERSION-x86_64.AppImage"
 
 rm -rf "$BUILDDIR"
@@ -24,9 +30,6 @@ mkdir -p "$APPDIR" "$CACHEDIR" "$DISTDIR"
 
 . "$CONTRIB"/base.sh
 
-info "Refreshing submodules ..."
-git submodule update --init
-
 info "downloading some dependencies."
 download_if_not_exist "$CACHEDIR/functions.sh" "https://raw.githubusercontent.com/AppImage/pkg2appimage/$PKG2APPIMAGE_COMMIT/functions.sh"
 verify_hash "$CACHEDIR/functions.sh" "78b7ee5a04ffb84ee1c93f0cb2900123773bc6709e5d1e43c37519f590f86918"
@@ -34,36 +37,49 @@ verify_hash "$CACHEDIR/functions.sh" "78b7ee5a04ffb84ee1c93f0cb2900123773bc6709e
 download_if_not_exist "$CACHEDIR/appimagetool" "https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage"
 verify_hash "$CACHEDIR/appimagetool" "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13"
 
-download_if_not_exist "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz"
-verify_hash "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" $PYTHON_SRC_TARBALL_HASH
+PYBINCACHE="$CACHEDIR/Python-$PYTHON_VERSION-bin.tar.xz"
+if ! [ -r "$PYBINCACHE" ] ; then
+    download_if_not_exist "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz"
+    verify_hash "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" $PYTHON_SRC_TARBALL_HASH
 
-
-
-info "Building Python"
-tar xf "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" -C "$BUILDDIR"
-(
-    cd "$BUILDDIR/Python-$PYTHON_VERSION"
-    export SOURCE_DATE_EPOCH=1530212462
-    LC_ALL=C export BUILD_DATE=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%b %d %Y")
-    LC_ALL=C export BUILD_TIME=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%H:%M:%S")
-    # Patch taken from Ubuntu python3.6_3.6.8-1~18.04.1.debian.tar.xz
-    patch -p1 < "$CONTRIB/build-linux/appimage/patches/python-3.6.8-reproducible-buildinfo.diff" || fail "Could not patch Python build system for reproducibility"
-    ./configure \
-      --cache-file="$CACHEDIR/python.config.cache" \
-      --prefix="$APPDIR/usr" \
-      --enable-ipv6 \
-      --enable-shared \
-      --with-threads \
-      -q || fail "Python configure failed"
-    make -j 4 -s || fail "Could not build Python"
-    make -s install > /dev/null || fail "Failed to install Python"
-    # When building in docker on macOS, python builds with .exe extension because the
-    # case insensitive file system of macOS leaks into docker. This causes the build
-    # to result in a different output on macOS compared to Linux. We simply patch
-    # sysconfigdata to remove the extension.
-    # Some more info: https://bugs.python.org/issue27631
-    sed -i -e 's/\.exe//g' "$PYDIR"/_sysconfigdata*
-)
+    info "Building Python"
+    tar xf "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" -C "$BUILDDIR"
+    (
+        cd "$BUILDDIR/Python-$PYTHON_VERSION"
+        export SOURCE_DATE_EPOCH=1530212462
+        LC_ALL=C export BUILD_DATE=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%b %d %Y")
+        LC_ALL=C export BUILD_TIME=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%H:%M:%S")
+        # Patch taken from Ubuntu python3.6_3.6.8-1~18.04.1.debian.tar.xz
+        patch -p1 < "$CONTRIB/build-linux/appimage/patches/python-3.6.8-reproducible-buildinfo.diff" || fail "Could not patch Python build system for reproducibility"
+        ./configure \
+          --cache-file="$CACHEDIR/python.config.cache" \
+          --prefix="$APPDIR/usr" \
+          --enable-ipv6 \
+          --enable-shared \
+          --with-threads \
+          -q || fail "Python configure failed"
+        make -j 4 -s || fail "Could not build Python"
+        make -s install > /dev/null || fail "Failed to install Python"
+        # When building in docker on macOS, python builds with .exe extension because the
+        # case insensitive file system of macOS leaks into docker. This causes the build
+        # to result in a different output on macOS compared to Linux. We simply patch
+        # sysconfigdata to remove the extension.
+        # Some more info: https://bugs.python.org/issue27631
+        sed -i -e 's/\.exe//g' "$PYDIR"/_sysconfigdata*
+    )
+    info "Creating Python binary cache"
+    (
+        cd "$APPDIR/usr"
+        find . -path '*/__pycache__*' -delete
+        find . -exec touch -h -d '2000-11-11T11:11:11+00:00' {} +
+        tar cJpf "$PYBINCACHE" .
+    )
+else
+    verify_hash "$PYBINCACHE" $PYTHON_BINARY_HASH
+    info "Unpacking Python binary cache"
+    mkdir -p "$APPDIR/usr"
+    tar xpf "$PYBINCACHE" -C "$APPDIR/usr"
+fi
 
 info "Building squashfskit"
 git clone "https://github.com/squashfskit/squashfskit.git" "$BUILDDIR/squashfskit"
