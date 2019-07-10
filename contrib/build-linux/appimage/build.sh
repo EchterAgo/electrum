@@ -60,6 +60,16 @@ $SUDO docker build -t electroncash-appimage-builder-img-$DOCKER_SUFFIX \
     contrib/build-linux/appimage \
     || fail "Failed to create docker image"
 
+$SUDO docker run --rm electroncash-appimage-builder-img-$DOCKER_SUFFIX \
+    apt-get update && apt-get --just-print upgrade
+
+DOCKER_SUFFIX=ub1604_fontconfig
+
+$SUDO docker build -t electroncash-appimage-builder-img-$DOCKER_SUFFIX \
+    -f contrib/build-linux/appimage/Dockerfile_$DOCKER_SUFFIX \
+    contrib/build-linux/appimage \
+    || fail "Failed to create docker image"
+
 # This is the place where we checkout and put the exact revision we want to work
 # on. Docker will run mapping this directory to /opt/electroncash
 # which inside wine will look lik c:\electroncash
