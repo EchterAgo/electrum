@@ -26,9 +26,9 @@
 import re
 import math
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QLineEdit, QVBoxLayout, QLabel, QGridLayout, QCheckBox
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QLineEdit, QVBoxLayout, QLabel, QGridLayout, QCheckBox
 
 from electroncash.i18n import _
 
@@ -64,11 +64,11 @@ class PasswordLayout(object):
         self.wallet = wallet
 
         self.pw = QLineEdit()
-        self.pw.setEchoMode(2)
+        self.pw.setEchoMode(QLineEdit.Password)
         self.new_pw = QLineEdit()
-        self.new_pw.setEchoMode(2)
+        self.new_pw.setEchoMode(QLineEdit.Password)
         self.conf_pw = QLineEdit()
-        self.conf_pw.setEchoMode(2)
+        self.conf_pw.setEchoMode(QLineEdit.Password)
         self.kind = kind
         self.OK_button = OK_button
 
@@ -201,7 +201,7 @@ class PasswordDialog(WindowModalDialog):
         msg = msg or _('Please enter your password')
         WindowModalDialog.__init__(self, parent, _("Enter Password"))
         self.pw = pw = QLineEdit()
-        pw.setEchoMode(2)
+        pw.setEchoMode(QLineEdit.Password)
         vbox = QVBoxLayout()
         vbox.addWidget(QLabel(msg))
         grid = QGridLayout()

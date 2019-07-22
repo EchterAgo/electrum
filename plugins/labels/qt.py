@@ -1,8 +1,8 @@
 from functools import partial
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout)
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout)
 
 from electroncash.plugins import hook
 from electroncash.i18n import _
@@ -17,9 +17,9 @@ from .labels import LabelsPlugin
 
 class LabelsSignalObject(QObject):
     ''' Signals need to be members of a QObject, hence why this class exists. '''
-    labels_changed_signal = pyqtSignal(object)
-    wallet_not_synched_signal = pyqtSignal(object)
-    request_exception_signal = pyqtSignal(object, object)
+    labels_changed_signal = Signal(object)
+    wallet_not_synched_signal = Signal(object)
+    request_exception_signal = Signal(object, object)
 
 
 def window_parent(w):
@@ -55,7 +55,7 @@ class Plugin(LabelsPlugin):
         dlgRef = Weak.ref(d)
         if wallet in self.wallets:
             class MySigs(QObject):
-                ok_button_disable_sig = pyqtSignal(bool)
+                ok_button_disable_sig = Signal(bool)
             d.sigs = MySigs(d)
             d.sigs.ok_button_disable_sig.connect(d.ok_button.setDisabled) # disable ok button while the TaskThread runs ..
             hbox = QHBoxLayout()

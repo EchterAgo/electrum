@@ -28,9 +28,9 @@ import copy
 import datetime
 import json
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 
 from electroncash.address import Address, PublicKey, ScriptOutput
 from electroncash.bitcoin import base_encode
@@ -60,8 +60,8 @@ def show_transaction(tx, parent, desc=None, prompt_if_unsaved=False):
 
 class TxDialog(QDialog, MessageBoxMixin, PrintError):
 
-    throttled_update_sig = pyqtSignal()  # connected to self.throttled_update -- emit from thread to do update in main thread
-    dl_done_sig = pyqtSignal()  # connected to an inner function to get a callback in main thread upon dl completion
+    throttled_update_sig = Signal()  # connected to self.throttled_update -- emit from thread to do update in main thread
+    dl_done_sig = Signal()  # connected to an inner function to get a callback in main thread upon dl completion
 
     def __init__(self, tx, parent, desc, prompt_if_unsaved):
         '''Transactions in the wallet will show their description.

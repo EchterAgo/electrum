@@ -4,9 +4,9 @@ import sys
 import threading
 import traceback
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 
 from electroncash import Wallet, WalletStorage
 from electroncash.util import UserCancelled, InvalidPassword, finalization_print_error
@@ -96,8 +96,8 @@ def wizard_dialog(func):
 # WindowModalDialog must come first as it overrides show_error
 class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
 
-    accept_signal = pyqtSignal()
-    synchronized_signal = pyqtSignal(str)
+    accept_signal = Signal()
+    synchronized_signal = Signal(str)
 
     def __init__(self, config, app, plugins, storage):
         BaseWizard.__init__(self, config, storage)
@@ -169,7 +169,7 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         hbox2 = QHBoxLayout()
         self.pw_e = QLineEdit('', self)
         self.pw_e.setFixedWidth(150)
-        self.pw_e.setEchoMode(2)
+        self.pw_e.setEchoMode(QLineEdit.Password)
         self.pw_label = QLabel(_('Password') + ':')
         hbox2.addWidget(self.pw_label)
         hbox2.addWidget(self.pw_e)
@@ -210,7 +210,7 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
             if pw:
                 self.pw_label.show()
                 self.pw_e.show()
-                self.pw_e.setFocus()
+                self.pw_e.setFocus(Qt.OtherFocusReason)
             else:
                 self.pw_label.hide()
                 self.pw_e.hide()
@@ -310,7 +310,7 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         self.back_button.setEnabled(True)
         self.next_button.setEnabled(next_enabled)
         if next_enabled:
-            self.next_button.setFocus()
+            self.next_button.setFocus(Qt.OtherFocusReason)
         self.main_widget.setVisible(True)
         self.please_wait.setVisible(False)
 

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import (QLineEdit, QStyle, QStyleOptionFrame)
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import (QLineEdit, QStyle, QStyleOptionFrame)
 
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from electroncash.util import format_satoshis_plain, inv_base_units
 from .util import ColorScheme
 
 class MyLineEdit(QLineEdit):
-    frozen = pyqtSignal()
+    frozen = Signal()
 
     def setFrozen(self, b):
         self.setReadOnly(b)
@@ -17,7 +17,7 @@ class MyLineEdit(QLineEdit):
         self.frozen.emit()
 
 class AmountEdit(MyLineEdit):
-    shortcut = pyqtSignal()
+    shortcut = Signal()
 
     def __init__(self, base_unit, is_int = False, parent=None):
         QLineEdit.__init__(self, parent)

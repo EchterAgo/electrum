@@ -7,9 +7,9 @@ import re
 import traceback
 import platform
 
-from PyQt5 import QtCore
-from PyQt5 import QtGui
-from PyQt5 import QtWidgets
+from PySide2 import QtCore
+from PySide2 import QtGui
+from PySide2 import QtWidgets
 
 from electroncash import util, get_config
 from electroncash.i18n import _
@@ -50,7 +50,7 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
 
     CONFIRM_TEXT = _("I UNDERSTAND THE RISK").upper()
 
-    acknowledged = QtCore.pyqtSignal(bool)
+    acknowledged = QtCore.Signal(bool)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -121,14 +121,14 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
         """
         return self.input_edit.text().strip().upper() == self.CONFIRM_TEXT
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_text_changed(self):
         """
         Enables the confirm button when the input text matches
         """
         self.confirm_btn.setEnabled(self.input_ok())
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_confirm(self):
         """
         Closes the dialog if the input text matches
@@ -234,7 +234,7 @@ class Console(QtWidgets.QWidget):
                 self.editor.setFocusPolicy(fp)
                 self.editor.setFocusProxy(None)
                 # Focus the editor after confirming
-                self.editor.setFocus()
+                self.editor.setFocus(Qt.OtherFocusReason)
                 self.warningOverlay.deleteLater()
                 self.warningOverlay = None
             self.warningOverlay.acknowledged.connect(on_acknowledged)

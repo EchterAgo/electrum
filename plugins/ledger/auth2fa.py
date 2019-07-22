@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import *
+from PySide2.QtWidgets import *
 
 from electroncash.i18n import _
 from electroncash_gui.qt.util import *
@@ -75,7 +75,7 @@ class LedgerAuthDialog(QDialog):
         pinlayout = QHBoxLayout()
         self.pinbox.setLayout(pinlayout)
         self.pintxt = QLineEdit()
-        self.pintxt.setEchoMode(2)
+        self.pintxt.setEchoMode(QLineEdit.Password)
         self.pintxt.setMaxLength(4)
         self.pintxt.returnPressed.connect(return_pin)
         pinlayout.addWidget(QLabel(_("Enter PIN:")))
@@ -115,7 +115,7 @@ class LedgerAuthDialog(QDialog):
         cardpin = QHBoxLayout()
         cardpin.addWidget(QLabel(_("Enter PIN:")))
         self.cardtxt = QLineEdit()
-        self.cardtxt.setEchoMode(2)
+        self.cardtxt.setEchoMode(QLineEdit.Password)
         self.cardtxt.setMaxLength(len(self.idxs))
         self.cardtxt.textChanged.connect(pin_changed)
         self.cardtxt.returnPressed.connect(return_pin)
@@ -144,7 +144,7 @@ class LedgerAuthDialog(QDialog):
         self.helpmsg.setVisible(True)
         self.pinbox.setVisible(self.cfg['mode'] == 0)
         self.cardbox.setVisible(self.cfg['mode'] == 1)
-        self.pintxt.setFocus(True) if self.cfg['mode'] == 0 else self.cardtxt.setFocus(True)
+        self.pintxt.setFocus(Qt.OtherFocusReason) if self.cfg['mode'] == 0 else self.cardtxt.setFocus(Qt.OtherFocusReason)
         self.setMaximumHeight(200)
 
     def getDevice2FAMode(self):

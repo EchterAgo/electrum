@@ -1,8 +1,8 @@
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-import PyQt5.QtGui as QtGui
-from PyQt5.QtWidgets import (
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+import PySide2.QtGui as QtGui
+from PySide2.QtWidgets import (
     QApplication, QVBoxLayout, QTextEdit, QHBoxLayout, QPushButton, QWidget,
     QSizePolicy, QToolTip)
 

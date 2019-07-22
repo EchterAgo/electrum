@@ -2,10 +2,10 @@ from functools import partial
 import threading
 import os
 
-from PyQt5.QtCore import Qt, QStandardPaths
-from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
-from PyQt5.QtWidgets import QGridLayout, QInputDialog, QPushButton
-from PyQt5.QtWidgets import QVBoxLayout, QLabel
+from PySide2.QtCore import Qt, QStandardPaths
+from PySide2.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
+from PySide2.QtWidgets import QGridLayout, QInputDialog, QPushButton
+from PySide2.QtWidgets import QVBoxLayout, QLabel
 
 from electroncash_gui.qt.util import *
 from electroncash.i18n import _
@@ -85,7 +85,7 @@ class MatrixDialog(WindowModalDialog):
         elif key == Qt.Key_Escape:
             self.data = 'x'
         elif self.is_valid(key):
-            self.char_buttons[key - ord('1')].setFocus()
+            self.char_buttons[key - ord('1')].setFocus(Qt.OtherFocusReason)
             self.data = '%c' % key
         if self.data:
             self.loop.exit(0)
@@ -103,9 +103,9 @@ class MatrixDialog(WindowModalDialog):
 
 class QtHandler(QtHandlerBase):
 
-    pin_signal = pyqtSignal(object)
-    matrix_signal = pyqtSignal(object)
-    close_matrix_dialog_signal = pyqtSignal()
+    pin_signal = Signal(object)
+    matrix_signal = Signal(object)
+    close_matrix_dialog_signal = Signal()
 
     def __init__(self, win, pin_matrix_widget_class, device):
         super(QtHandler, self).__init__(win, device)

@@ -25,8 +25,8 @@
 
 from typing import List
 
-from PyQt5.QtWidgets import QLayout, QWidget, QLayoutItem
-from PyQt5.QtCore import Qt, QSize, QRect, QPoint
+from PySide2.QtWidgets import QLayout, QWidget, QLayoutItem
+from PySide2.QtCore import Qt, QSize, QRect, QPoint
 
 class FixedAspectRatioLayout(QLayout):
     def __init__(self, parent: QWidget = None, aspect_ratio: float = 1.0):

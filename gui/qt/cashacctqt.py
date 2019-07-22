@@ -27,9 +27,9 @@ Cash Accounts related classes and functions - Qt UI related.
 '''
 
 # TODO: whittle these * imports down to what we actually use
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 from .util import *
 from .qrcodewidget import QRCodeWidget
 

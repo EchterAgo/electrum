@@ -6,9 +6,9 @@
 #
 # LICENSE: MIT
 #
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 import sys
 
 class PopupWidget(QWidget):
@@ -19,10 +19,10 @@ class PopupWidget(QWidget):
     LR_MARGIN = 10.0#8.0 #/* left / right margin  */
     TB_MARGIN = 8.0#5.5 #/* top / bottom margin */
 
-    didHide = pyqtSignal()
-    didShow = pyqtSignal()
-    onClick = pyqtSignal()
-    onRightClick = pyqtSignal()
+    didHide = Signal()
+    didShow = Signal()
+    onClick = Signal()
+    onRightClick = Signal()
 
     def __init__(self, parent = None, timeout = None, delete_on_hide = True,
                  activation_hides = True, dark_mode = False):
@@ -63,13 +63,13 @@ class PopupWidget(QWidget):
     def getPointerPosition(self): return self.pointerPos
     def setPointerPosition(self, r): self.pointerPos = r; self.update()
 
-    @pyqtProperty(float) # Property so that Qt animations work. You may set the actual attrbute directly and ingore this in client code
+    @Property(float) # Property so that Qt animations work. You may set the actual attrbute directly and ingore this in client code
     def popupOpacity(self): return self.popup_opacity
     @popupOpacity.setter
     def popupOpacity(self, value):
         self.popup_opacity = value
         self.setWindowOpacity(value)
-    @pyqtProperty(float) # Property so that Qt animations work. You may set the actual attrbute directly and ingore this in client code
+    @Property(float) # Property so that Qt animations work. You may set the actual attrbute directly and ingore this in client code
     def finalOpacity(self): return self.final_opacity
     @finalOpacity.setter
     def finalOpacity(self, value): self.final_opacity = value

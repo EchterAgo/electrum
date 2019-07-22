@@ -23,8 +23,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtCore import QObject, QSize
-from PyQt5.QtSvg import QSvgWidget
+from PySide2.QtCore import QObject, QSize
+from PySide2.QtSvg import QSvgWidget
 
 class FixedAspectRatioSvgWidget(QSvgWidget):
     def __init__(self, width: int, file: str = None, parent: QObject = None):

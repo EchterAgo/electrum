@@ -1,9 +1,9 @@
 from functools import partial
 import threading
 
-from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
-from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import (QVBoxLayout, QLabel, QGridLayout, QPushButton,
+from PySide2.QtCore import Qt, QEventLoop, Signal, QRegExp
+from PySide2.QtGui import QRegExpValidator
+from PySide2.QtWidgets import (QVBoxLayout, QLabel, QGridLayout, QPushButton,
                              QHBoxLayout, QButtonGroup, QGroupBox, QDialog,
                              QTextEdit, QLineEdit, QRadioButton, QCheckBox, QWidget,
                              QMessageBox, QFileDialog, QSlider, QTabWidget,
@@ -99,7 +99,7 @@ class CharacterDialog(WindowModalDialog):
         for n, button in enumerate(self.char_buttons):
             button.setEnabled(n == self.character_pos)
             if n == self.character_pos:
-                button.setFocus()
+                button.setFocus(Qt.OtherFocusReason)
 
     def is_valid_alpha_space(self, key):
         # Auto-completion requires at least 3 characters
@@ -137,9 +137,9 @@ class CharacterDialog(WindowModalDialog):
 
 class QtHandler(QtHandlerBase):
 
-    char_signal = pyqtSignal(object)
-    pin_signal = pyqtSignal(object)
-    close_char_dialog_signal = pyqtSignal()
+    char_signal = Signal(object)
+    pin_signal = Signal(object)
+    close_char_dialog_signal = Signal()
 
     def __init__(self, win, pin_matrix_widget_class, device):
         super(QtHandler, self).__init__(win, device)

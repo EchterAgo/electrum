@@ -31,9 +31,9 @@ import time
 import threading
 import queue
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 
 from electroncash.plugins import BasePlugin, hook
 from electroncash.i18n import _
@@ -379,7 +379,7 @@ class MsgForwarder(QObject):
     ''' Forwards messages from BackgroundShufflingThread to the GUI thread using
         Qt signal magic. See function update_coin_status above. '''
 
-    gotMessage = pyqtSignal(str, str)
+    gotMessage = Signal(str, str)
 
     def __init__(self, window):
         super().__init__(None)
@@ -418,7 +418,7 @@ def monkey_patches_apply(window):
         window.send_tab_shuffle_extra = SendTabExtra(window)
         window._shuffle_tentative = dict()
         class Sigs(QObject):
-            tx = pyqtSignal(QObject, object)
+            tx = Signal(QObject, object)
         window._shuffle_sigs = sigs = Sigs(window)
         sigs.tx.connect(_got_tx)
         window._shuffle_network_callback = lambda event, *args: network_callback(window, event, *args)
@@ -1224,8 +1224,8 @@ class SendTabExtraDisabled(QFrame, PrintError):
 class SendTabExtra(QFrame, PrintError):
     ''' Implements a Widget that appears in the main_window 'send tab' to inform the user of shuffled coin status & totals '''
 
-    needRefreshSignal = pyqtSignal() # protocol thread uses this signal to tell us that amounts have changed
-    needWalletSaveSignal = pyqtSignal() # protocol thread uses this signal to tell us that the wallet should be saved to disk using storage.write
+    needRefreshSignal = Signal() # protocol thread uses this signal to tell us that amounts have changed
+    needWalletSaveSignal = Signal() # protocol thread uses this signal to tell us that the wallet should be saved to disk using storage.write
     pixmap_cached = None # singleton gets initialized first time an instance of this class is constructed. Contains the cashshuffle_icon5.png scaled to 125px width
 
     def __init__(self, window):
@@ -1457,21 +1457,21 @@ class SendTabExtra(QFrame, PrintError):
 class NetworkCheckerDelegateMixin:
     '''Abstract base for classes receiving data from the NetworkChecker.
     SettingsDialog implements this, as does the PoolsWindow.'''
-    settingsChanged = pyqtSignal(dict)
-    statusChanged = pyqtSignal(dict)
+    settingsChanged = Signal(dict)
+    statusChanged = Signal(dict)
 
 class SettingsDialogMixin(NetworkCheckerDelegateMixin, PrintError):
     ''' Abstrat Base class -- do not instantiate this as it will raise errors
-    because the pyqtSignal cannot be bound to a non-QObject.
+    because the Signal cannot be bound to a non-QObject.
 
     Instead, use SettingsDialog and/or SettingsTab which interit from this and
     are proper QObject subclasses.
 
     Also call __init__ on the QObject/QWidget first before calling this
     class's __init__ method.'''
-    # from base: settingsChanged = pyqtSignal(dict)
-    # from base: statusChanged = pyqtSignal(dict)
-    formChanged = pyqtSignal()
+    # from base: settingsChanged = Signal(dict)
+    # from base: statusChanged = Signal(dict)
+    formChanged = Signal()
 
     _DEFAULT_HOST_SUBSTR = "shuffle.servo.cash"  # on fresh install, prefer this server as default (substring match)
 
@@ -1741,7 +1741,7 @@ class SettingsTab(SettingsDialogMixin, QWidget):
     # See this: http://python.6.x6.nabble.com/Issue-with-multiple-inheritance-td5207771.html
     # So we inherit from our mixin first. (Note I had problems with overriding
     # __init__ here and Qt's C++ calling the wrong init here.)
-    applyChanges = pyqtSignal(object)
+    applyChanges = Signal(object)
 
     def __init__(self, parent, config, message=None):
         QWidget.__init__(self, parent=parent)
@@ -1912,7 +1912,7 @@ class NetworkChecker(PrintError):
 # / NetworkChecker
 
 class PoolsWinMgr(QObject, PrintError):
-    simpleChangedSig = pyqtSignal()
+    simpleChangedSig = Signal()
 
     _instance = None
     def __init__(self):
@@ -1993,9 +1993,9 @@ class PoolsWinMgr(QObject, PrintError):
 # /PoolsWinMgr
 
 class PoolsWindow(QWidget, PrintError, NetworkCheckerDelegateMixin):
-    closed = pyqtSignal(str)
-    # from base: settingsChanged = pyqtSignal(dict)
-    # from base: statusChanged = pyqtSignal(dict)
+    closed = Signal(str)
+    # from base: settingsChanged = Signal(dict)
+    # from base: statusChanged = Signal(dict)
 
     def __init__(self, config, pseudo_parent, serverDict, settings, modal=False):
         super().__init__()  # top-level window
@@ -2062,7 +2062,7 @@ class PoolsWindow(QWidget, PrintError, NetworkCheckerDelegateMixin):
                 # the weakRef is still alive even after C/C++ deletion
                 # (and no other references referencing the object!).
                 if 'C++' in str(e):
-                    self.print_error("Underlying C/C++ object deleted. Working around PyQt5 bugs and ignoring...")
+                    self.print_error("Underlying C/C++ object deleted. Working around PySide2 bugs and ignoring...")
                 else:
                     raise
         super().closeEvent(e)
@@ -2171,7 +2171,7 @@ class PoolsWindow(QWidget, PrintError, NetworkCheckerDelegateMixin):
         nc.pollTimeSecs, nc.verifySSL, nc.checkShufflePort = 2.0, False, False
         self.print_error("Starting network checker...")
         self.networkChecker.start()
-        QTimer.singleShot(500, self._kick_off_nc)  # despite appearances timer will not fire after object deletion due to PyQt5 singal/slot receiver rules
+        QTimer.singleShot(500, self._kick_off_nc)  # despite appearances timer will not fire after object deletion due to PySide2 singal/slot receiver rules
     def stopNetworkChecker(self):
         if self.networkChecker:
             self.networkChecker.stop() # waits for network checker to finish...

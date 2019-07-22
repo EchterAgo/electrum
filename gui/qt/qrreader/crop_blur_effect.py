@@ -23,9 +23,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtWidgets import QGraphicsBlurEffect, QGraphicsEffect
-from PyQt5.QtGui import QPainter, QTransform, QRegion
-from PyQt5.QtCore import QObject, QRect, QPoint, Qt
+from PySide2.QtWidgets import QGraphicsBlurEffect, QGraphicsEffect
+from PySide2.QtGui import QPainter, QTransform, QRegion
+from PySide2.QtCore import QObject, QRect, QPoint, Qt
 
 class QrReaderCropBlurEffect(QGraphicsBlurEffect):
     CROP_OFFSET_ENABLED = False

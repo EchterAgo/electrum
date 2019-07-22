@@ -3,7 +3,7 @@ This is used to patch the QApplication style sheet.
 It reads the current stylesheet, appends our modifications and sets the new stylesheet.
 """
 
-from PyQt5 import QtWidgets
+from PySide2 import QtWidgets
 from electroncash.util import print_error
 
 def patch(dark: bool = False, darkstyle_ver: tuple = None):

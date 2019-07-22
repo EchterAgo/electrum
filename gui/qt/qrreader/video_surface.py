@@ -25,10 +25,10 @@
 
 from typing import List
 
-from PyQt5.QtMultimedia import (QVideoFrame, QAbstractVideoBuffer, QAbstractVideoSurface,
+from PySide2.QtMultimedia import (QVideoFrame, QAbstractVideoBuffer, QAbstractVideoSurface,
                                 QVideoSurfaceFormat)
-from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QObject, pyqtSignal
+from PySide2.QtGui import QImage
+from PySide2.QtCore import QObject, Signal
 
 from electroncash.i18n import _
 from electroncash.util import print_error
@@ -84,4 +84,4 @@ class QrReaderVideoSurface(QAbstractVideoSurface):
                 QVideoFrame.Format_RGB555, QVideoFrame.Format_ARGB8565_Premultiplied]
         return []
 
-    frame_available = pyqtSignal(QImage)
+    frame_available = Signal(QImage)

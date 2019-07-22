@@ -36,9 +36,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 
 from electroncash.plugins import BasePlugin, hook
 from electroncash.paymentrequest import PaymentRequest
@@ -127,8 +127,8 @@ class Processor(threading.Thread, PrintError):
 
 
 class EmailSignalObject(QObject):
-    email_new_invoice_signal = pyqtSignal()
-    email_error = pyqtSignal(str)
+    email_new_invoice_signal = Signal()
+    email_error = Signal(str)
 
 
 class Plugin(BasePlugin):

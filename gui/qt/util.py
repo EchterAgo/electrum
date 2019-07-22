@@ -12,9 +12,9 @@ from functools import partial, wraps
 from electroncash.address import Address
 from electroncash.util import print_error, PrintError, Weak, finalization_print_error
 from electroncash.wallet import Abstract_Wallet
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 
 if platform.system() == 'Windows':
     MONOSPACE_FONT = 'Consolas'
@@ -361,7 +361,7 @@ class WaitingDialog(WindowModalDialog):
         self.thread.stop()
         if self.auto_cleanup:
             self.wait() # wait for thread to complete so that we can get cleaned up
-            self.setParent(None) # this causes GC to happen sooner rather than later. Before this call was added the WaitingDialogs would stick around in memory until the ElectrumWindow was closed and would never get GC'd before then. (as of PyQt5 5.11.3)
+            self.setParent(None) # this causes GC to happen sooner rather than later. Before this call was added the WaitingDialogs would stick around in memory until the ElectrumWindow was closed and would never get GC'd before then. (as of PySide2 5.11.3)
 
     def on_rejected(self):
         if self.auto_cleanup:
@@ -839,12 +839,12 @@ class ButtonsTextEdit(OverlayControlMixin, QPlainTextEdit):
         self.setText = self.setPlainText
         self.text = self.toPlainText
 
-class TaskThread(PrintError, QThread):
+class TaskThread(QThread, PrintError):
     '''Thread that runs background tasks.  Callbacks are guaranteed
     to happen in the context of its parent.'''
 
     Task = namedtuple("Task", "task cb_success cb_done cb_error")
-    doneSig = pyqtSignal(object, object, object)
+    doneSig = Signal(object, object, object)
 
     def __init__(self, parent, on_error=None, *, name=None):
         QThread.__init__(self, parent)

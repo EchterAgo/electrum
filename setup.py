@@ -125,7 +125,7 @@ setup(
     },
     name="Electron Cash",
     version=version.PACKAGE_VERSION,
-    install_requires=requirements + ['pyqt5'],
+    install_requires=requirements + ['pyside2'],
     extras_require={
         'hardware': requirements_hw,
     },

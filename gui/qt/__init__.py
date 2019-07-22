@@ -27,31 +27,31 @@
 import gc, os, platform, shutil, signal, sys, traceback
 
 try:
-    import PyQt5
+    import PySide2
 except Exception:
     if sys.platform.startswith('win'):
-        msg = ("\n\nError: Could not import PyQt5.\n"
+        msg = ("\n\nError: Could not import PySide2.\n"
                "If you are running the release .exe, this is a bug (please"
                " contact the developers in that case).\n"
                "If you are running from source, then you may try this from the command-line:\n\n"
-               "    python -m pip install pyqt5\n\n")
+               "    python -m pip install PySide2\n\n")
     elif sys.platform.startswith('darw'):
-        msg = ("\n\nError: Could not import PyQt5.\n"
+        msg = ("\n\nError: Could not import PySide2.\n"
                "If you are running the release .app, this is a bug (please"
                " contact the developers in that case).\n"
                "If you are running from source, then you may try this from the command-line:\n\n"
-               "    python3 -m pip install --user -I pyqt5\n\n")
+               "    python3 -m pip install --user -I PySide2\n\n")
     else:
-        msg = ("\n\nError: Could not import PyQt5.\n"
+        msg = ("\n\nError: Could not import PySide2.\n"
                "You may try:\n\n"
-               "    python3 -m pip install --user -I pyqt5\n\n"
+               "    python3 -m pip install --user -I PySide2\n\n"
                "Or, if on Linux Ubuntu, Debian, etc:\n\n"
-               "    sudo apt-get install python3-pyqt5\n\n")
+               "    sudo apt-get install python3-PySide2\n\n")
     sys.exit(msg)
 
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+from PySide2.QtCore import *
 
 from electroncash.i18n import _, set_language
 from electroncash.plugins import run_hook
@@ -73,10 +73,10 @@ from .update_checker import UpdateChecker
 
 
 class ElectrumGui(QObject, PrintError):
-    new_window_signal = pyqtSignal(str, object)
-    update_available_signal = pyqtSignal(bool)
-    cashaddr_toggled_signal = pyqtSignal()  # app-wide signal for when cashaddr format is toggled. This used to live in each ElectrumWindow instance but it was recently refactored to here.
-    cashaddr_status_button_hidden_signal = pyqtSignal(bool)  # app-wide signal for when cashaddr toggle button is hidden from the status bar
+    new_window_signal = Signal(str, object)
+    update_available_signal = Signal(bool)
+    cashaddr_toggled_signal = Signal()  # app-wide signal for when cashaddr format is toggled. This used to live in each ElectrumWindow instance but it was recently refactored to here.
+    cashaddr_status_button_hidden_signal = Signal(bool)  # app-wide signal for when cashaddr toggle button is hidden from the status bar
 
     instance = None
 
@@ -133,7 +133,7 @@ class ElectrumGui(QObject, PrintError):
             QGuiApplication.setDesktopFileName('electron-cash.desktop')
         self.app = QApplication(sys.argv)
         self._load_fonts()  # this needs to be done very early, before the font engine loads fonts.. out of paranoia
-        self._exit_if_required_pyqt_is_missing()  # This may immediately exit the app if missing required PyQt5 modules, so it should also be done early.
+        self._exit_if_required_pyside_is_missing()  # This may immediately exit the app if missing required PySide2 modules, so it should also be done early.
         self.new_version_available = None
         self._set_icon()
         self.app.installEventFilter(self)
@@ -183,24 +183,24 @@ class ElectrumGui(QObject, PrintError):
         if hasattr(super(), '__del__'):
             super().__del__()
 
-    def _exit_if_required_pyqt_is_missing(self):
-        ''' Will check if required PyQt5 modules are present and if not,
+    def _exit_if_required_pyside_is_missing(self):
+        ''' Will check if required PySide2 modules are present and if not,
         display an error message box to the user and immediately quit the app.
 
-        This is because some Linux systems break up PyQt5 into multiple
-        subpackages, and for instance PyQt5 QtSvg is its own package, and it
+        This is because some Linux systems break up PySide2 into multiple
+        subpackages, and for instance PySide2 QtSvg is its own package, and it
         may be missing.
         '''
         try:
-            from PyQt5 import QtSvg
+            from PySide2 import QtSvg
         except ImportError:
             # Closes #1436 -- Some "Run from source" Linux users lack QtSvg
-            # (partial PyQt5 install)
-            msg = _("A required Qt module, QtSvg was not found. Please fully install all of PyQt5 5.12 or above to resolve this issue.")
+            # (partial PySide2 install)
+            msg = _("A required Qt module, QtSvg was not found. Please fully install all of PySide2 5.12 or above to resolve this issue.")
             if sys.platform == 'linux':
-                msg += "\n\n" + _("On Linux, you may try:\n\n    python3 -m pip install --user -I pyqt5")
+                msg += "\n\n" + _("On Linux, you may try:\n\n    python3 -m pip install --user -I PySide2")
                 if shutil.which('apt'):
-                    msg += "\n\n" + _("On Debian-based distros, you can run:\n\n    sudo apt install python3-pyqt5.qtsvg")
+                    msg += "\n\n" + _("On Debian-based distros, you can run:\n\n    sudo apt install python3-pyside2.qtsvg")
 
             QMessageBox.critical(None, _("QtSvg Missing"), msg)  # this works even if app is not exec_() yet.
             self.app.exit(1)
@@ -219,7 +219,7 @@ class ElectrumGui(QObject, PrintError):
         if use_dark_theme:
             try:
                 import qdarkstyle
-                self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+                self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyside2())
                 try:
                     darkstyle_ver = version.normalize_version(qdarkstyle.__version__)
                 except (ValueError, IndexError, TypeError, NameError, AttributeError) as e:
@@ -293,7 +293,7 @@ class ElectrumGui(QObject, PrintError):
         ''' Returns a 3-tuple of the form (major, minor, revision) eg
         (5, 12, 4) for the current Qt version derived from the QT_VERSION
         global provided by Qt. '''
-        return ( (QT_VERSION >> 16) & 0xff,  (QT_VERSION >> 8) & 0xff, QT_VERSION & 0xff )
+        return PySide2.QtCore.__version_info__
 
     def _load_fonts(self):
         ''' All apologies for the contorted nature of this platform code.
@@ -347,12 +347,12 @@ class ElectrumGui(QObject, PrintError):
 
     def _check_and_warn_qt_version(self):
         if sys.platform == 'linux' and self.qt_version() < (5, 12):
-            msg = _("Electron Cash on Linux requires PyQt5 5.12+.\n\n"
+            msg = _("Electron Cash on Linux requires PySide2 5.12+.\n\n"
                     "You have version {version_string} installed.\n\n"
                     "Please upgrade otherwise you may experience "
                     "font rendering issues with emojis and other unicode "
                     "characters used by Electron Cash.").format(version_string=QT_VERSION_STR)
-            QMessageBox.warning(None, _("PyQt5 Upgrade Needed"), msg)  # this works even if app is not exec_() yet.
+            QMessageBox.warning(None, _("PySide2 Upgrade Needed"), msg)  # this works even if app is not exec_() yet.
 
 
     def eventFilter(self, obj, event):
@@ -648,7 +648,7 @@ class ElectrumGui(QObject, PrintError):
                              title=_("QR Reader Error"),
                              message=_("QR reader failed to load. This may "
                                        "happen if you are using an older version "
-                                       "of PyQt5.<br><br>Detailed error: ") + str(e),
+                                       "of PySide2.<br><br>Detailed error: ") + str(e),
                              rich_text=True)
             return True
         return False

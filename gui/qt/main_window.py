@@ -33,9 +33,9 @@ from functools import partial
 from collections import OrderedDict
 from typing import List
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 
 from electroncash import keystore, get_config
 from electroncash.address import Address, ScriptOutput
@@ -81,7 +81,7 @@ class StatusBarButton(QPushButton):
         self.setCursor(Qt.PointingHandCursor)
 
     def onPress(self, checked=False):
-        '''Drops the unwanted PyQt5 "checked" argument'''
+        '''Drops the unwanted PySide2 "checked" argument'''
         self.func()
 
     def keyPressEvent(self, e):
@@ -95,16 +95,16 @@ from electroncash.paymentrequest import PR_PAID
 class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     # Note: self.clean_up_connections automatically detects signals named XXX_signal and disconnects them on window close.
-    payment_request_ok_signal = pyqtSignal()
-    payment_request_error_signal = pyqtSignal()
-    new_fx_quotes_signal = pyqtSignal()
-    new_fx_history_signal = pyqtSignal()
-    network_signal = pyqtSignal(str, object)
-    alias_received_signal = pyqtSignal()
-    history_updated_signal = pyqtSignal()
-    labels_updated_signal = pyqtSignal() # note this signal occurs when an explicit update_labels() call happens. Interested GUIs should also listen for history_updated_signal as well which also indicates labels may have changed.
-    on_timer_signal = pyqtSignal()  # functions wanting to be executed from timer_actions should connect to this signal, preferably via Qt.DirectConnection
-    ca_address_default_changed_signal = pyqtSignal(object)  # passes cashacct.Info object to slot, which is the new default. Mainly emitted by address_list and address_dialog
+    payment_request_ok_signal = Signal()
+    payment_request_error_signal = Signal()
+    new_fx_quotes_signal = Signal()
+    new_fx_history_signal = Signal()
+    network_signal = Signal(str, object)
+    alias_received_signal = Signal()
+    history_updated_signal = Signal()
+    labels_updated_signal = Signal() # note this signal occurs when an explicit update_labels() call happens. Interested GUIs should also listen for history_updated_signal as well which also indicates labels may have changed.
+    on_timer_signal = Signal()  # functions wanting to be executed from timer_actions should connect to this signal, preferably via Qt.DirectConnection
+    ca_address_default_changed_signal = Signal(object)  # passes cashacct.Info object to slot, which is the new default. Mainly emitted by address_list and address_dialog
 
     status_icon_dict = dict()  # app-globel cache of "status_*" -> QIcon instances (for update_status() speedup)
 
@@ -169,7 +169,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         def add_optional_tab(tabs, tab, icon, description, name, default=False):
             tab.tab_icon = icon
             tab.tab_description = description
-            tab.tab_pos = len(tabs)
+            tab.tab_pos = tabs.count()
             tab.tab_name = name
             if self.config.get('show_{}_tab'.format(name), default):
                 tabs.addTab(tab, icon, description.replace("&", ""))
@@ -203,7 +203,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.payment_request_ok_signal.connect(self.payment_request_ok)
         self.payment_request_error_signal.connect(self.payment_request_error)
         self.gui_object.update_available_signal.connect(self.on_update_available)  # shows/hides the update_available_button, emitted by update check mechanism when a new version is available
-        self.history_list.setFocus(True)
+        self.history_list.setFocus(Qt.OtherFocusReason)
 
         # update fee slider in case we missed the callback
         self.fee_slider.update()
@@ -1019,7 +1019,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         msg = _("The Cash Account (if any) associated with this address. It doesn't get saved with the request, but it is shown here for your convenience.\n\nYou may use the Cash Accounts button to register a new Cash Account for this address.")
         label = HelpLabel(_('Cash Accoun&t'), msg)
         class CashAcctE(ButtonsLineEdit):
-            my_network_signal = pyqtSignal(str, object)
+            my_network_signal = Signal(str, object)
             ''' Inner class encapsulating the Cash Account Edit.s
             Note:
                  - `slf` in this class is this instance.
@@ -1331,7 +1331,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.expires_label.hide()
         self.expires_combo.show()
         self.request_list.setCurrentItem(None)  # We want the current item to always reflect what's in the UI. So if new, clear selection.
-        self.receive_message_e.setFocus(1)
+        self.receive_message_e.setFocus(Qt.OtherFocusReason)
 
     def set_receive_address(self, addr):
         self.receive_address = addr
@@ -1475,7 +1475,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(self.payto_e, 1, 1, 1, -1)
 
         completer = QCompleter(self.payto_e)
-        completer.setCaseSensitivity(False)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.payto_e.setCompleter(completer)
         completer.setModel(self.completions)
 
@@ -2524,11 +2524,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.show_send_tab()
         if len(payees) == 1:
             self.payto_e.setText(payees[0])
-            self.amount_e.setFocus()
+            self.amount_e.setFocus(Qt.OtherFocusReason)
         else:
             text = "\n".join([payee + ", 0" for payee in payees])
             self.payto_e.setText(text)
-            self.payto_e.setFocus()
+            self.payto_e.setFocus(Qt.OtherFocusReason)
 
     def resolve_cashacct(self, name):
         ''' Throws up a WaitingDialog while it resolves a Cash Account.
@@ -2834,7 +2834,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.balance_label.setHidden(True)
             self.statusBar().insertWidget(0, self._search_box_spacer)
             self._search_box_spacer.show()
-            self.search_box.setFocus(1)
+            self.search_box.setFocus(Qt.OtherFocusReason)
             if self.search_box.text():
                 self.do_search(self.search_box.text())
         else:
@@ -3282,8 +3282,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                               _('It can not be "backed up" by simply exporting these private keys.'))
 
         class MyWindowModalDialog(WindowModalDialog):
-            computing_privkeys_signal = pyqtSignal()
-            show_privkeys_signal = pyqtSignal()
+            computing_privkeys_signal = Signal()
+            show_privkeys_signal = Signal()
 
         d = MyWindowModalDialog(self.top_level_window(), _('Private keys'))
         weak_d = Weak.ref(d)
@@ -4014,7 +4014,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         qr_combo.addItem(_("Default"),"default")
         system_cameras = []
         try:
-            from PyQt5.QtMultimedia import QCameraInfo
+            from PySide2.QtMultimedia import QCameraInfo
             system_cameras = QCameraInfo.availableCameras()
             qr_label = HelpLabel(_('Video Device') + ':', _("For scanning Qr codes."))
         except ImportError as e:

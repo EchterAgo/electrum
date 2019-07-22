@@ -29,10 +29,10 @@ import sys
 import os
 from typing import List
 
-from PyQt5.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QCheckBox, QPushButton, QLabel
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import QSize, QRect, Qt, pyqtSignal, PYQT_VERSION
+from PySide2.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
+from PySide2.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QCheckBox, QPushButton, QLabel
+from PySide2.QtGui import QImage, QPixmap
+from PySide2.QtCore import QSize, QRect, Qt, Signal, PYQT_VERSION
 
 from electroncash import get_config
 from electroncash.i18n import _
@@ -70,7 +70,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
     # Try to crop so we have minimum 512 dimensions
     SCAN_SIZE: int = 512
 
-    qr_finished = pyqtSignal(bool, str, object)
+    qr_finished = Signal(bool, str, object)
 
     def __init__(self, parent):
         ''' Note: make sure parent is a "top_level_window()" as per
@@ -189,7 +189,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
 
         # Raise an error if we have no usable resolutions
         if not ideal_resolutions and not less_than_ideal_resolutions:
-            raise NoCameraResolutionsFound(_("Cannot start QR scanner, no usable camera resolution found.") + self._linux_pyqt5bug_msg())
+            raise NoCameraResolutionsFound(_("Cannot start QR scanner, no usable camera resolution found."))
 
         if not ideal_resolutions:
             self.print_error('Warning: No ideal resolutions found, falling back to less-than-ideal resolutions -- QR recognition may fail!')
@@ -216,20 +216,6 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
         scan_pos_y = (resolution.height() - scan_size) / 2
         return QRect(scan_pos_x, scan_pos_y, scan_size, scan_size)
 
-    @staticmethod
-    def _linux_pyqt5bug_msg():
-        ''' Returns a string that may be appended to an exception error message
-        only if on Linux and PyQt5 < 5.12.2, otherwise returns an empty string. '''
-        if (sys.platform == 'linux' and PYQT_VERSION < 0x050c02 # Check if PyQt5 < 5.12.2 on linux
-                # Also: this warning is not relevant to APPIMAGE; so make sure
-                # we are not running from APPIMAGE.
-                and not os.environ.get('APPIMAGE')):
-            # In this case it's possible we couldn't detect a camera because
-            # of that missing libQt5MultimediaGstTools.so problem.
-            return ("\n\n" + _('If you indeed do have a usable camera connected, then this error may be caused by bugs in previous PyQt5 versions on Linux. Try installing the latest PyQt5:')
-                    + "\n\n" + "python3 -m pip install --user -I pyqt5")
-        return ''
-
     def start_scan(self, device: str = ''):
         """
         Scans a QR code from the given camera device.
@@ -252,7 +238,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
             device_info = QCameraInfo.defaultCamera()
 
         if not device_info or device_info.isNull():
-            raise NoCamerasFound(_("Cannot start QR scanner, no usable camera found.") + self._linux_pyqt5bug_msg())
+            raise NoCamerasFound(_("Cannot start QR scanner, no usable camera found."))
 
         self._init_stats()
         self.qrreader_res = []

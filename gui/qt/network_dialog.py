@@ -25,10 +25,10 @@
 
 import socket, queue
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-import PyQt5.QtCore as QtCore
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
+import PySide2.QtCore as QtCore
 
 from electroncash.i18n import _
 from electroncash import networks
@@ -41,7 +41,7 @@ protocol_names = ['TCP', 'SSL']
 protocol_letters = 'ts'
 
 class NetworkDialog(MessageBoxMixin, QDialog):
-    network_updated_signal = pyqtSignal()
+    network_updated_signal = Signal()
 
     def __init__(self, network, config):
         QDialog.__init__(self)
@@ -733,7 +733,7 @@ class NetworkChoiceLayout(QObject, PrintError):
 
 
 class TorDetector(QThread):
-    found_proxy = pyqtSignal(object)
+    found_proxy = Signal(object)
 
     def start(self):
         self.stopQ = queue.Queue() # create a new stopQ blowing away the old one just in case it has old data in it (this prevents races with stop/start arriving too quickly for the thread)

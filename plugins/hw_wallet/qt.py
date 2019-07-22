@@ -26,7 +26,7 @@
 
 import threading
 
-from PyQt5.QtWidgets import QVBoxLayout, QLabel
+from PySide2.QtWidgets import QVBoxLayout, QLabel
 from electroncash_gui.qt.password_dialog import PasswordDialog, PW_PASSPHRASE
 from electroncash_gui.qt.util import *
 
@@ -39,15 +39,15 @@ class QtHandlerBase(QObject, PrintError):
     '''An interface between the GUI (here, Qt) and the device handling
     logic for handling I/O.'''
 
-    passphrase_signal = pyqtSignal(object, object)
-    message_signal = pyqtSignal(object, object)
-    error_signal = pyqtSignal(object)
-    warning_signal = pyqtSignal(object)
-    word_signal = pyqtSignal(object)
-    clear_signal = pyqtSignal()
-    query_signal = pyqtSignal(object, object)
-    yes_no_signal = pyqtSignal(object)
-    status_signal = pyqtSignal(object)
+    passphrase_signal = Signal(object, object)
+    message_signal = Signal(object, object)
+    error_signal = Signal(object)
+    warning_signal = Signal(object)
+    word_signal = Signal(object)
+    clear_signal = Signal()
+    query_signal = Signal(object, object)
+    yes_no_signal = Signal(object)
+    status_signal = Signal(object)
 
     def __init__(self, win, device):
         super(QtHandlerBase, self).__init__()
@@ -123,7 +123,7 @@ class QtHandlerBase(QObject, PrintError):
         else:
             d = WindowModalDialog(parent, _("Enter Passphrase"))
             pw = QLineEdit()
-            pw.setEchoMode(2)
+            pw.setEchoMode(QLineEdit.Password)
             pw.setMinimumWidth(200)
             vbox = QVBoxLayout()
             vbox.addWidget(WWLabel(msg))

@@ -25,9 +25,9 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 
 from electroncash.util import PrintError, print_error
 from electroncash.i18n import _
@@ -55,12 +55,12 @@ class UpdateChecker(QWidget, PrintError):
     # in a 'checked' signal or a 'failed' signal to be emitted.
     # got_new_version is only emitted if the new version is actually newer than
     # our version.
-    checked = pyqtSignal(object) # emitted whenever the server gave us a (properly signed) version string. may or may not mean it's a new version.
-    got_new_version = pyqtSignal(object) # emitted in tandem with 'checked' above ONLY if the server gave us a (properly signed) version string we recognize as *newer*
-    failed = pyqtSignal() # emitted when there is an exception, network error, or verify error on version check.
+    checked = Signal(object) # emitted whenever the server gave us a (properly signed) version string. may or may not mean it's a new version.
+    got_new_version = Signal(object) # emitted in tandem with 'checked' above ONLY if the server gave us a (properly signed) version string we recognize as *newer*
+    failed = Signal() # emitted when there is an exception, network error, or verify error on version check.
 
-    _req_finished = pyqtSignal(object) # internal use by _Req thread
-    _dl_prog = pyqtSignal(object, int) # [0 -> 100] range
+    _req_finished = Signal(object) # internal use by _Req thread
+    _dl_prog = Signal(object, int) # [0 -> 100] range
 
     #url = "https://www.c3-soft.com/downloads/BitcoinCash/Electron-Cash/update_check" # Testing URL
     url = "https://raw.github.com/Electron-Cash/Electron-Cash/master/contrib/update_checker/releases.json" # Release URL

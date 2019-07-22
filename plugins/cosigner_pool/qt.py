@@ -30,9 +30,9 @@ import sys, traceback, queue
 from xmlrpc.client import ServerProxy, Transport
 import http.client
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 
 from electroncash import bitcoin, util, keystore
 from electroncash import transaction
@@ -130,7 +130,7 @@ class Listener(util.DaemonThread):
 class State(QObject):
     ''' Window-specific state. Gets inserted into cosigner_pool_state attribute
     for window. '''
-    cosigner_receive_signal = pyqtSignal(object, object)
+    cosigner_receive_signal = Signal(object, object)
     listener = None
     keys = []
     cosigner_list = []

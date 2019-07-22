@@ -1,6 +1,6 @@
 import threading
 
-from PyQt5.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout, QLabel
+from PySide2.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout, QLabel
 
 from electroncash.i18n import _
 from electroncash.plugins import hook
@@ -29,8 +29,8 @@ class Plugin(LedgerPlugin, QtPluginBase):
             menu.addAction(_("Show on Ledger"), show_address)
 
 class Ledger_Handler(QtHandlerBase):
-    setup_signal = pyqtSignal()
-    auth_signal = pyqtSignal(object)
+    setup_signal = Signal()
+    auth_signal = Signal(object)
 
     def __init__(self, win):
         super(Ledger_Handler, self).__init__(win, 'Ledger')

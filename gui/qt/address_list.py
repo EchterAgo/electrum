@@ -27,9 +27,9 @@ from functools import partial
 from collections import defaultdict
 
 from .util import MyTreeWidget, MONOSPACE_FONT, SortableTreeWidgetItem, rate_limited, webopen
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont, QColor, QKeySequence, QCursor, QIcon
-from PyQt5.QtWidgets import QTreeWidgetItem, QAbstractItemView, QMenu, QToolTip
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtGui import QFont, QColor, QKeySequence, QCursor, QIcon
+from PySide2.QtWidgets import QTreeWidgetItem, QAbstractItemView, QMenu, QToolTip
 from electroncash.i18n import _
 from electroncash.address import Address
 from electroncash.plugins import run_hook
@@ -42,7 +42,7 @@ from . import cashacctqt
 class AddressList(MyTreeWidget):
     filter_columns = [0, 1, 2]  # Address, Label, Balance
 
-    _ca_minimal_chash_updated_signal = pyqtSignal(object, str)
+    _ca_minimal_chash_updated_signal = Signal(object, str)
     _cashacct_icon = None
 
     class DataRoles(IntEnum):

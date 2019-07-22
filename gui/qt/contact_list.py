@@ -31,9 +31,9 @@ from electroncash.plugins import run_hook
 from electroncash.util import FileImportFailed, PrintError, finalization_print_error
 # TODO: whittle down these * imports to what we actually use when done with
 # our changes to this class -Calin
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 from .util import (MyTreeWidget, webopen, WindowModalDialog, Buttons,
                    CancelButton, OkButton, HelpLabel, WWLabel,
                    destroyed_print_error, webopen, ColorScheme, MONOSPACE_FONT,
@@ -47,8 +47,8 @@ class ContactList(PrintError, MyTreeWidget):
     filter_columns = [1, 2, 3]  # Name, Label, Address
     default_sort = MyTreeWidget.SortSpec(1, Qt.AscendingOrder)
 
-    do_update_signal = pyqtSignal()
-    _ca_minimal_chash_updated_signal = pyqtSignal(object, str)
+    do_update_signal = Signal()
+    _ca_minimal_chash_updated_signal = Signal(object, str)
 
     class DataRoles(IntEnum):
         Contact     = Qt.UserRole + 0

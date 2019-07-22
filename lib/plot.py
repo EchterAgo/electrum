@@ -1,4 +1,4 @@
-from PyQt5.QtGui import *
+from PySide2.QtGui import *
 from .i18n import _
 
 

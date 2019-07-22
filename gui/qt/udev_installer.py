@@ -29,9 +29,9 @@ import os
 import tempfile
 import grp
 
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QMessageBox, QFrame, QWidget
+from PySide2.QtCore import Qt, QObject
+from PySide2.QtGui import QFont
+from PySide2.QtWidgets import QDialog, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QMessageBox, QFrame, QWidget
 
 from electroncash.util import _, PrintError
 from electroncash.plugins import Plugins

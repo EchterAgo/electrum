@@ -23,17 +23,17 @@
 # SOFTWARE.
 import threading
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PySide2.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 
 from .util import *
 from electroncash.util import PrintError, ServerError
 from electroncash.i18n import _
 
 class ScanBeyondGap(WindowModalDialog, PrintError):
-    progress_sig = pyqtSignal(int, int, int, int)
-    done_sig = pyqtSignal(object, object)
+    progress_sig = Signal(int, int, int, int)
+    done_sig = Signal(object, object)
 
     def __init__(self, main_window):
         super().__init__(parent=main_window, title=_("Scan Beyond Gap"))

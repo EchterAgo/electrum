@@ -30,10 +30,10 @@ import traceback
 import html
 
 import requests
-from PyQt5.QtCore import QObject
-import PyQt5.QtCore as QtCore
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import *
+from PySide2.QtCore import QObject
+import PySide2.QtCore as QtCore
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import *
 
 from electroncash.i18n import _
 import sys
@@ -191,7 +191,7 @@ class Exception_Hook(QObject):
     created by the ElectrumGui singleton, and it lives forever until app exit.
     (But ONLY if the `show_crash_reporter` config key is set.) '''
 
-    _report_exception = QtCore.pyqtSignal(object, object, object, object)
+    _report_exception = QtCore.Signal(object, object, object, object)
     _instance = None
 
     def __init__(self, config):

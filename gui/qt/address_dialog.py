@@ -27,9 +27,9 @@ from electroncash.i18n import _
 from electroncash.address import Address
 from electroncash.util import PrintError
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 
 from .util import *
 from .history_list import HistoryList
