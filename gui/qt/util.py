@@ -574,7 +574,7 @@ class MyTreeWidget(QTreeWidget):
             default = (storage and storage.get(key, None)) or self.default_sort
             if default and isinstance(default, (tuple, list)) and len(default) >= 2 and all(isinstance(i, int) for i in default):
                 self.setSortingEnabled(True)
-                self.sortByColumn(default[0], default[1])
+                self.sortByColumn(default[0], Qt.SortOrder(default[1]))
             if storage:
                 # Paranoia; hold a weak reference just in case subclass code
                 # does unusual things.
