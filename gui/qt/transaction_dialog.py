@@ -215,7 +215,7 @@ class TxDialog(QDialog, MessageBoxMixin, PrintError):
                 else:
                     slf.print_error("input fetch failed")
         try: self.dl_done_sig.disconnect()  # disconnect previous
-        except TypeError: pass
+        except (TypeError, RuntimeError): pass
         self.dl_done_sig.connect(dl_done_mainthread, Qt.QueuedConnection)
         self.tx.fetch_input_data(self.wallet, done_callback=dl_done, prog_callback=dl_prog, force=force, use_network=self.is_fetch_input_data())
 

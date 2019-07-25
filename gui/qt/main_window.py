@@ -792,7 +792,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def connect_fields(self, window, btc_e, fiat_e, fee_e):
 
-        def edit_changed(edit):
+        def edit_changed(edit, *args):
             if edit.follows:
                 return
             edit.setStyleSheet(ColorScheme.DEFAULT.as_stylesheet())
@@ -4391,13 +4391,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def clean_up_connections(self):
         def disconnect_signals():
+            sigType = type(self.cashaddr_toggled_signal)  # save type for PyQt/PySide2 interop
             del self.cashaddr_toggled_signal  # delete alias so it doesn interfere with below
             for attr_name in dir(self):
                 if attr_name.endswith("_signal"):
                     sig = getattr(self, attr_name)
-                    if isinstance(sig, pyqtBoundSignal):
+                    if isinstance(sig, sigType):
                         try: sig.disconnect()
-                        except TypeError: pass # no connections
+                        except (TypeError, RuntimeError): pass # no connections
                 elif attr_name.endswith("__RateLimiter"): # <--- NB: this needs to match the attribute name in util.py rate_limited decorator
                     rl_obj = getattr(self, attr_name)
                     if isinstance(rl_obj, RateLimiter):
@@ -4406,15 +4407,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             # but Axel Gembe got a crash related to this on Python 3.7.3, PyQt 5.12.3
             # so here we are. See #1531
             try: self.gui_object.cashaddr_toggled_signal.disconnect(self.update_cashaddr_icon)
-            except TypeError: pass
+            except (TypeError, RuntimeError): pass
             try: self.gui_object.cashaddr_toggled_signal.disconnect(self.update_receive_address_widget)
-            except TypeError: pass
+            except (TypeError, RuntimeError): pass
             try: self.gui_object.cashaddr_status_button_hidden_signal.disconnect(self.addr_converter_button.setHidden)
-            except TypeError: pass
+            except (TypeError, RuntimeError): pass
             try: self.gui_object.update_available_signal.disconnect(self.on_update_available)
-            except TypeError: pass
+            except (TypeError, RuntimeError): pass
             try: self.disconnect()
-            except TypeError: pass
+            except (TypeError, RuntimeError): pass
         def disconnect_network_callbacks():
             if self.network:
                 self.network.unregister_callback(self.on_network)
@@ -4448,7 +4449,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                         and not isinstance(c, (QStatusBar, QMenuBar, QFocusFrame, QShortcut)))]
         for c in children:
             try: c.disconnect()
-            except TypeError: pass
+            except (TypeError, RuntimeError): pass
             c.setParent(None)
 
     def clean_up(self):
@@ -4488,7 +4489,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
 
         try: self.gui_object.timer.timeout.disconnect(self.timer_actions)
-        except TypeError: pass # defensive programming: this can happen if we got an exception before the timer action was connected
+        except (TypeError, RuntimeError): pass # defensive programming: this can happen if we got an exception before the timer action was connected
 
         self.gui_object.close_window(self) # implicitly runs the hook: on_close_window
         # Now, actually STOP the wallet's synchronizer and verifiers and remove

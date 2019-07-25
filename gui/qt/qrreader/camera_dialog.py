@@ -32,7 +32,7 @@ from typing import List
 from PySide2.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
 from PySide2.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QCheckBox, QPushButton, QLabel
 from PySide2.QtGui import QImage, QPixmap
-from PySide2.QtCore import QSize, QRect, Qt, Signal, PYQT_VERSION
+from PySide2.QtCore import QSize, QRect, Qt, Signal, qVersion
 
 from electroncash import get_config
 from electroncash.i18n import _
