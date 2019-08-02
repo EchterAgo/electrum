@@ -38,6 +38,13 @@ RUN wget -nc https://dl.winehq.org/wine-builds/Release.key && \
         wine-stable:amd64=4.0~bionic \
         winehq-stable:amd64=4.0~bionic
 
+# NSIS build dependencies
+RUN apt-get install -qy \
+        subversion=1.9.7-4ubuntu1 \
+        scons=3.0.1-1 \
+        python2.7=2.7.15~rc1-1ubuntu0.1 \
+        zlib1g-dev=1:1.2.11.dfsg-0ubuntu2
+
 RUN rm -rf /var/lib/apt/lists/* && \
     apt-get autoremove -y && \
     apt-get clean

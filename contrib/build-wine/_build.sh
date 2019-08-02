@@ -133,15 +133,10 @@ prepare_wine() {
         here=`pwd`
         # Please update these carefully, some versions won't work under Wine
 
-        # !!! WARNING !!! READ THIS BEFORE UPGRADING NSIS
-        # NSIS has a bug in its icon group generation code that causes builds that have not exactly 7 icons to include uninitialized memory.
-        # If you upgrade NSIS, you need to check if the bug still exists in Source/icon.cpp line 267:
-        # https://sourceforge.net/p/nsis/code/HEAD/tree/NSIS/tags/v3021/Source/icon.cpp#l267
-        # Where they are incorrectly using order.size() instead of icon.size() to allocate the buffer and also don't zero the memory.
-        # If the bug hasn't been fixed, you need to check the NSIS generated uninstaller for number of icons and match that count exactly in your .ico file.
+        # Patched version of NSIS: https://github.com/kichik/nsis/commit/3017f6e4b46efb3d5236f2de7835c5cd44e6a4eb
         # See: https://github.com/spesmilo/electrum/commit/570c0aeca39e56c742b77380ec274d178d660c29
-        NSIS_URL='https://github.com/cculianu/Electron-Cash-Build-Tools/releases/download/v1.0/nsis-3.02.1-setup.exe'
-        NSIS_SHA256=736c9062a02e297e335f82252e648a883171c98e0d5120439f538c81d429552e
+        NSIS_URL='https://github.com/kichik/nsis/archive/3017f6e4b46efb3d5236f2de7835c5cd44e6a4eb.zip'
+        NSIS_SHA256=1b8f8ab921727096be8cd8eb873698e2530e0b7f64cf4c1ea522253e46136301
 
         LIBUSB_REPO='https://github.com/EchterAgo/libusb.git'
         LIBUSB_COMMIT=f2b1128714663ab9450d222ba7f438dbe4ec9d87
@@ -233,7 +228,13 @@ prepare_wine() {
         info "Installing Packages from requirements-binaries ..."
         $PYTHON -m pip install --no-warn-script-location -r $here/../deterministic-build/requirements-binaries.txt || fail "Failed to install requirements-binaries"
 
-        info "Installing NSIS ..."
+        info "Compiling NSIS ..."
+        download_if_not_exist nsis-src.zip "$NSIS_URL"
+        verify_hash nsis-src.zip $NSIS_SHA256
+        unzip nsis-src.zip -d nsis-tmp
+        mv nsis-tmp/* nsis-src
+        rm -rf nsis-tmp
+
         # Install NSIS installer
         wget -O nsis.exe "$NSIS_URL"
         verify_hash nsis.exe $NSIS_SHA256
