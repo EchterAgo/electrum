@@ -27,3 +27,4 @@ from .aspect_layout import FixedAspectRatioLayout
 from .aspect_svg_widget import FixedAspectRatioSvgWidget
 from .image_effect import ImageGraphicsEffect
 from .color_utils import QColorLerp
+from .layered_layout import LayeredLayout
