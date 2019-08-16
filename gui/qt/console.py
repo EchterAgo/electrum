@@ -14,6 +14,7 @@ from PyQt5 import QtWidgets
 from electroncash import util, get_config
 from electroncash.i18n import _
 from .util import ColorScheme, MONOSPACE_FONT
+from .utils import LayeredLayout
 
 
 class ConsoleWarningOverlay(QtWidgets.QWidget):
@@ -36,8 +37,8 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
     STYLESHEET_COMMON = '''
     QLabel, QLabel link {
         border: 2px solid;
-        padding: 8px;
-        font: 12pt;
+        padding: 0px 8px 0px 8px;
+        font-size: 12pt;
     }
     '''
 
@@ -75,23 +76,24 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
         self.setStyleSheet(style_sheet)
 
         layout = QtWidgets.QVBoxLayout()
-        layout.setContentsMargins(25,25,25,25)
+        layout.setContentsMargins(25, 25, 25, 25)
         self.setLayout(layout)
 
         warning_label = QtWidgets.QLabel(warning_text)
-        warning_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                    QtWidgets.QSizePolicy.MinimumExpanding)
+        warning_label.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                                    QtWidgets.QSizePolicy.Minimum)
         warning_label.setWordWrap(True)
         warning_label.setOpenExternalLinks(True)
-        layoutLbl = QtWidgets.QVBoxLayout()
-        layoutLbl.addWidget(warning_label)
-        layout.addLayout(layoutLbl, 1)
+        warning_label_layout = QtWidgets.QVBoxLayout()
+        warning_label_layout.setContentsMargins(0, 0, 0, 0)
+        warning_label_layout.addWidget(warning_label)
+        layout.addLayout(warning_label_layout, 1)
 
         if not ColorScheme.dark_scheme:
             drop_shadow_effect = QtWidgets.QGraphicsDropShadowEffect()
             drop_shadow_effect.setBlurRadius(5.0)
             drop_shadow_effect.setOffset(2.0, 2.0)
-            drop_shadow_effect.setColor(QtGui.QColor(63,63,63,100))
+            drop_shadow_effect.setColor(QtGui.QColor(63, 63, 63, 100))
             warning_label.setGraphicsEffect(drop_shadow_effect)
 
         hbox_layout = QtWidgets.QHBoxLayout()
@@ -201,11 +203,15 @@ class Console(QtWidgets.QWidget):
 
         self.setGeometry(50, 75, 600, 400)
 
+        layout = LayeredLayout()
+        self.setLayout(layout)
+
         self.editor = ConsoleTextEdit(self)
         self.editor.resize(self.size())
         self.editor.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
         self.editor.setUndoRedoEnabled(False)
         self.editor.setFont(QtGui.QFont(MONOSPACE_FONT, 10, QtGui.QFont.Normal))
+        layout.addWidget(self.editor)
 
         self.showMessage(startup_message)
 
@@ -220,7 +226,6 @@ class Console(QtWidgets.QWidget):
         # Don't show the warning if the user chose to have it not shown again
         if not config_dontaskagain:
             self.warningOverlay = ConsoleWarningOverlay(self)
-            self.warningOverlay.resize(self.size())
 
             fp = self.editor.focusPolicy()
             blur_effect = QtWidgets.QGraphicsBlurEffect()
@@ -238,12 +243,7 @@ class Console(QtWidgets.QWidget):
                 self.warningOverlay.deleteLater()
                 self.warningOverlay = None
             self.warningOverlay.acknowledged.connect(on_acknowledged)
-
-    def resizeEvent(self, e):
-        super().resizeEvent(e)
-        self.editor.resize(self.size())
-        if self.warningOverlay:
-            self.warningOverlay.resize(self.size())
+            layout.addWidget(self.warningOverlay)
 
     def set_json(self, b):
         self.is_json = b
