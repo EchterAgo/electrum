@@ -235,6 +235,11 @@ class ElectrumGui(QObject, PrintError):
 
                 callables.append(undo_hack)
 
+        # Set the Fusion style if the user requested it
+        if self.config.get('qt_use_fusion_style', False):
+            if not QApplication.setStyle("Fusion"):
+                self.print_error("Unable to load Fusion style")
+
         return ret
 
     def _exit_if_required_pyqt_is_missing(self):

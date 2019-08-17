@@ -4139,6 +4139,21 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         colortheme_combo.currentIndexChanged.connect(on_colortheme)
         gui_widgets.append((colortheme_label, colortheme_combo))
 
+        # Enable/Disable Qt Fusion style -- this style is consistent accross platforms and supports
+        # non-integer scaling factors.
+        fusion_style_chk = QCheckBox(_('Use Qt Fusion style'))
+        fs_tooltip = _("When enabled the application will display in Qt's Fusion style, which is "
+                       "consistent accross platforms and supports non-integer scaling factors. "
+                       "When disabled, a default style will be chosen according to the platform, "
+                       "which might also be Fusion.")
+        fusion_style_chk.setToolTip(fs_tooltip)
+        fusion_style_chk.setChecked(bool(self.config.get('qt_use_fusion_style', False)))
+        def on_fusion_style_toggle():
+            self.config.set_key('qt_use_fusion_style', fusion_style_chk.isChecked())
+            self.need_restart = True
+        fusion_style_chk.stateChanged.connect(on_fusion_style_toggle)
+        gui_widgets.append((fusion_style_chk, None))
+
         if sys.platform not in ('darwin',):
             # Enable/Disable HighDPI -- this option makes no sense for macOS
             # and thus does not appear on that platform
