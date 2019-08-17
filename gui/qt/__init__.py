@@ -235,12 +235,64 @@ class ElectrumGui(QObject, PrintError):
 
                 callables.append(undo_hack)
 
+        # On Windows we need to detect the scaling
+        if sys.platform == 'win32':
+            self._windows_detect_display_scaling()
+
         # Set the Fusion style if the user requested it
         if self.config.get('qt_use_fusion_style', False):
             if not QApplication.setStyle("Fusion"):
                 self.print_error("Unable to load Fusion style")
 
         return ret
+
+    def _windows_detect_display_scaling(self):
+        """
+        Detects windows display scaling.
+
+        Starting with Qt 5.6 the pixelDensity function of Qt doesn't work correctly with
+        non-integer scaling settings due to the usage of qRound:
+
+        https://codereview.qt-project.org/c/qt/qtbase/+/139897
+        https://bugreports.qt.io/browse/QTBUG-55654
+
+        This is likely by design as the native Windows style has rendering issues with
+        non-integer scaling settings. However the Fusion style will work with any scaling
+        factor.
+
+        As of 2019-08 work is being done to overhaul the Qt high DPI system to fix this:
+
+        https://bugreports.qt.io/browse/QTBUG-53022
+        """
+
+        temp_app = QApplication([])
+
+        scale_factors = []
+        for screen in QApplication.screens():
+            # Logical DPI is 96 multiplied by the users screen scale factor
+            scale_factors.append(screen.logicalDotsPerInch() / 96.0)
+
+        has_non_integer_factors = any([s % 1.0 > 0.0 for s in scale_factors])
+        if (has_non_integer_factors and not self.config.get('qt_use_fusion_style', False)
+                and not self.config.get('qt_asked_non_integer', False)):
+            # There is a non-integer scale factor, ask the user to enable Fusion style
+            q = _('One of your monitors uses a non-integer scaling factor which will cause slight '
+                  'issues with rendering. As an alternative you can activate the Qt Fusion style '
+                  'which will render correctly on your setup.\n'
+                  'Do you want to activate the style? (You can change this in the Preferences)')
+            res = QMessageBox.question(None, _('Non-integer scaling factor detected'), q,
+                                 defaultButton=QMessageBox.Yes)
+            if res == QMessageBox.Yes:
+                self.config.set_key('qt_use_fusion_style', True)
+            self.config.set_key('qt_asked_non_integer', True)
+
+        del temp_app
+
+        # QT_SCREEN_SCALE_FACTORS is a semicolon-separated list of scale factors in the same
+        # order as the QApplication.screens() list.
+        # See https://doc.qt.io/qt-5/highdpi.html#high-dpi-support-in-qt
+        scale_factors_str = ';'.join(f'{s:g}' for s in scale_factors)
+        os.environ['QT_SCREEN_SCALE_FACTORS'] = scale_factors_str
 
     def _exit_if_required_pyqt_is_missing(self):
         ''' Will check if required PyQt5 modules are present and if not,
