@@ -180,6 +180,10 @@ class ElectrumGui(QObject, PrintError):
             # font if needed.
             os.environ['QT_QPA_PLATFORM'] = 'windows:fontengine=freetype'
 
+        # On Windows we need to detect the scaling
+        if sys.platform == 'win32':
+            self._windows_detect_display_scaling()
+
         QCoreApplication.setAttribute(Qt.AA_X11InitThreads)
         if hasattr(Qt, "AA_ShareOpenGLContexts"):
             QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
@@ -235,10 +239,6 @@ class ElectrumGui(QObject, PrintError):
 
                 callables.append(undo_hack)
 
-        # On Windows we need to detect the scaling
-        if sys.platform == 'win32':
-            self._windows_detect_display_scaling()
-
         # Set the Fusion style if the user requested it
         if self.config.get('qt_use_fusion_style', False):
             if not QApplication.setStyle("Fusion"):
@@ -270,9 +270,12 @@ class ElectrumGui(QObject, PrintError):
         scale_factors = []
         for screen in QApplication.screens():
             # Logical DPI is 96 multiplied by the users screen scale factor
-            scale_factors.append(screen.logicalDotsPerInch() / 96.0)
+            scale_factor_win = max(1, screen.logicalDotsPerInch() / 96.0)
+            scale_factor_qt = max(1, round(screen.logicalDotsPerInch() / 96.0))
+            scale_factor = scale_factor_win / scale_factor_qt
+            scale_factors.append(scale_factor)
 
-        has_non_integer_factors = any([s % 1.0 > 0.0 for s in scale_factors])
+        has_non_integer_factors = any([s > 1.0 for s in scale_factors])
         if (has_non_integer_factors and not self.config.get('qt_use_fusion_style', False)
                 and not self.config.get('qt_asked_non_integer', False)):
             # There is a non-integer scale factor, ask the user to enable Fusion style
