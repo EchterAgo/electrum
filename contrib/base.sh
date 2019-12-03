@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ -n "$_BASE_SH_SOURCED" ] ; then
+    # Base.sh has been sourced already, no need to source it again
+    exit 0
+fi
+
 # Set a fixed umask as this leaks into the docker container
 umask 0022
 
@@ -157,3 +162,6 @@ fi
 CPU_COUNT="${CPU_COUNT:-4}"
 # Use one more worker than core count
 WORKER_COUNT=$[$CPU_COUNT+1]
+
+# This variable is set to avoid sourcing base.sh multiple times
+_BASE_SH_SOURCED=1
