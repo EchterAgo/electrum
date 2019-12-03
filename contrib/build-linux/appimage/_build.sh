@@ -68,24 +68,12 @@ git clone "https://github.com/squashfskit/squashfskit.git" "$BUILDDIR/squashfski
 )
 MKSQUASHFS="$BUILDDIR/squashfskit/squashfs-tools/mksquashfs"
 
-#info "Building libsecp256k1"  # make_secp below already prints this
 (
-    pushd "$PROJECT_ROOT"
-
-    "$CONTRIB"/make_secp || fail "Could not build libsecp"
-
-    popd
+    cd "$PROJECT_ROOT"
+    for pkg in secp zbar ; do
+        "$CONTRIB"/make_$pkg || fail "Could not build $pkg"
+    done
 )
-
-#info "Building libzbar"  # make_zbar below already prints this
-(
-    pushd "$PROJECT_ROOT"
-
-    "$CONTRIB"/make_zbar || fail "Could not build libzbar"
-
-    popd
-)
-
 
 appdir_python() {
   env \

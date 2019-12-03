@@ -31,97 +31,12 @@ rm "$here"/dist/* -fr
 rm -fr /tmp/electrum-build
 mkdir -p /tmp/electrum-build
 
-build_secp256k1() {
-    info "Building libsecp256k1..."
-    (
-        set -e
-        build_dll() {
-            echo "libsecp256k1_la_LDFLAGS = -no-undefined" >> Makefile.am
-            echo "LDFLAGS = -no-undefined" >> Makefile.am
-            ./autogen.sh || fail "Could not run autogen.sh for secp256k1"
-            # Note: always set --host along with --build.
-            LDFLAGS="-Wl,--no-insert-timestamp -Wl,-no-undefined -Wl,--no-undefined" ./configure \
-                --host=$1 \
-                --build=x86_64-pc-linux-gnu \
-                --enable-module-recovery \
-                --enable-experimental \
-                --enable-module-ecdh \
-                --disable-jni \
-                --with-bignum=no \
-                --enable-module-schnorr \
-                --disable-tests \
-                --disable-static \
-                --enable-shared || fail "Could not run ./configure for secp256k1"
-            make LDFLAGS='-no-undefined' -j4 || fail "Could not build secp256k1"
-            ${1}-strip .libs/libsecp256k1-0.dll
-        }
-
-        pushd "$here"/../secp256k1 || fail "Could not chdir to secp256k1"
-        LIBSECP_VERSION="a9752bb2d1c1f5abb30e5bde7a1fad582629e46d"  # According to Mark B. Lundeberg, using a commit hash guarantees no repository man-in-the-middle funny business as git is secure when verifying hashes.
-        git checkout $LIBSECP_VERSION || fail "Could not check out secp256k1 $LIBSECP_VERSION"
-        git clean -f -x -q
-
-        build_dll i686-w64-mingw32  # 64-bit would be: x86_64-w64-mingw32
-        mv .libs/libsecp256k1-0.dll libsecp256k1.dll || fail "Could not find generated DLL"
-
-        find -exec touch -d '2000-11-11T11:11:11+00:00' {} +
-
-        popd
-    ) || fail "Could not build libsecp256k1"
-    info "Build of libsecp256k1 finished"
-}
-build_secp256k1
-
-build_zbar() {
-    info "Building libzbar..."
-    (
-        set -e
-        build_dll() {
-            echo "libzbar_la_LDFLAGS += -Wc,-static" >> zbar/Makefile.am
-            echo "LDFLAGS += -Wc,-static" >> Makefile.am
-            autoreconf -vfi || fail "Could not run autoreconf for zbar"
-            # Note: It's really important that you set --build and --host when running configure
-            # Otherwise weird voodoo magic happens with Docker and Wine. Also for correctness GNU
-            # autoconf docs say you should.
-            # https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Hosts-and-Cross_002dCompilation.html
-            LDFLAGS="-Wl,--no-insert-timestamp" ./configure \
-                --host=$1 \
-                --build=x86_64-pc-linux-gnu \
-                --with-x=no \
-                --enable-pthread=no \
-                --enable-doc=no \
-                --enable-video=no \
-                --with-directshow=no \
-                --with-jpeg=no \
-                --with-python=no \
-                --with-gtk=no \
-                --with-qt=no \
-                --with-java=no \
-                --with-imagemagick=no \
-                --with-dbus=no \
-                --enable-codes=qrcode \
-                --disable-dependency-tracking \
-                --disable-static \
-                --enable-shared || fail "Could not run ./configure for zbar"
-            make -j4 || fail "Could not build zbar"
-            ${1}-strip zbar/.libs/libzbar-0.dll
-        }
-
-        pushd "$here"/../zbar || fail "Could not chdir to zbar"
-        LIBZBAR_VERSION="1d51925e6cc9151f4a73781989f21fcd7b57ef32" # version 0.23
-        git checkout $LIBZBAR_VERSION || fail "Could not check out zbar $LIBZBAR_VERSION"
-        git clean -f -x -q
-
-        build_dll i686-w64-mingw32 # 64-bit would be: x86_64-w64-mingw32
-        mv zbar/.libs/libzbar-0.dll libzbar-0.dll || fail "Could not find generated DLL"
-
-        find -exec touch -d '2000-11-11T11:11:11+00:00' {} +
-
-        popd
-    ) || fail "Could not build libzbar"
-    info "Build of libzbar finished"
-}
-build_zbar
+(
+    cd "$PROJECT_ROOT"
+    for pkg in secp zbar ; do
+        "$here"/../make_$pkg || fail "Could not build $pkg"
+    done
+)
 
 prepare_wine() {
     info "Preparing Wine..."
