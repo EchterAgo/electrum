@@ -31,10 +31,6 @@ rm "$here"/dist/* -fr
 rm -fr /tmp/electrum-build
 mkdir -p /tmp/electrum-build
 
-info "Refreshing submodules..."
-git submodule init
-git submodule update
-
 build_secp256k1() {
     info "Building libsecp256k1..."
     (

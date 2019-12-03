@@ -163,5 +163,9 @@ CPU_COUNT="${CPU_COUNT:-4}"
 # Use one more worker than core count
 WORKER_COUNT=$[$CPU_COUNT+1]
 
+# Update submodules only once
+info "Refreshing submodules..."
+git submodule update --init
+
 # This variable is set to avoid sourcing base.sh multiple times
 _BASE_SH_SOURCED=1
