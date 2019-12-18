@@ -19,6 +19,3 @@
 [submodule "contrib/tor"]
 	path = contrib/tor
 	url = https://git.torproject.org/tor.git
-[submodule "contrib/xz"]
-	path = contrib/xz
-	url = https://git.tukaani.org/xz.git

@@ -6,11 +6,16 @@ pushd "$here"
 here=`pwd`  # get an absolute path
 popd
 . "$here"/../base.sh # functions we use below (fail, et al)
+
 # Note: 3.6.9 is our PYTHON_VERSION in other builds, but for some reason
 # Python.org didn't bother to build Python 3.6.9 for Windows (and no .msi files
 # exist for this release).  So, we hard-code 3.6.8 for Windows builds.
 # See: https://www.python.org/downloads/windows/
-PYTHON_VERSION=3.6.8  # override setting in base.sh
+
+# override settings in base.sh:
+PYTHON_VERSION=3.6.8
+BUILD_TYPE="wine"
+AUTOCONF_FLAGS="--host=i686-w64-mingw32 --build=x86_64-pc-linux-gnu"
 
 if [ ! -z "$1" ]; then
     to_build="$1"

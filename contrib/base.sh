@@ -115,6 +115,8 @@ function retry() {
   return $result
 }
 
+which git > /dev/null || fail "Git is required to proceed"
+
 # Now, some variables that affect all build scripts
 
 export PYTHONHASHSEED=22
@@ -162,6 +164,10 @@ fi
 CPU_COUNT="${CPU_COUNT:-4}"
 # Use one more worker than core count
 WORKER_COUNT=$[$CPU_COUNT+1]
+# Set the build type, overridden by wine build
+BUILD_TYPE="${BUILD_TYPE:-$(uname | tr '[:upper:]' '[:lower:]')}"
+# No additional autoconf flags by default
+AUTOCONF_FLAGS=""
 
 # Update submodules only once
 info "Refreshing submodules..."
