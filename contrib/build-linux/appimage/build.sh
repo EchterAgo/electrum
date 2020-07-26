@@ -57,7 +57,8 @@ fi
 # for us, we'll live.  (Note that it's also possible to build our own OpenSSL
 # in the docker image if we get desperate for OpenSSL 1.1 but still want to
 # benefit from the compatibility granted to us by using an older Ubuntu).
-DOCKER_SUFFIX=ub1604
+#DOCKER_SUFFIX=ub1604
+DOCKER_SUFFIX=debian10
 
 info "Creating docker image ..."
 $SUDO docker build -t electroncash-appimage-builder-img-$DOCKER_SUFFIX \
