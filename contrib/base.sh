@@ -58,15 +58,11 @@ function printok {
 
 function verify_hash {
     local file=$1 expected_hash=$2
-    sha_prog=`which sha256sum || which gsha256sum`
-    if [ -z "$sha_prog" ]; then
-        fail "Please install sha256sum or gsha256sum"
-    fi
     if [ ! -e "$file" ]; then
         fail "Cannot verify hash for $file -- not found!"
     fi
     bn=`basename $file`
-    actual_hash=$($sha_prog $file | awk '{print $1}')
+    actual_hash=$($SHA256_PROG $file | awk '{print $1}')
     if [ "$actual_hash" == "$expected_hash" ]; then
         printok "'$bn' hash verified"
         return 0
@@ -94,7 +90,7 @@ function verify_signature {
 function download_if_not_exist() {
     local file_name=$1 url=$2
     if [ ! -e $file_name ] ; then
-        if [ -n "$(which wget)" ]; then
+        if [ -n "$(command -v wget)" ]; then
             wget -O $file_name "$url" || fail "Failed to download $file_name"
         else
             curl -L "$url" > $file_name || fail "Failed to download $file_name"
@@ -177,7 +173,7 @@ if [ -n "$_BASE_SH_SOURCED" ] ; then
     return 0
 fi
 
-which git > /dev/null || fail "Git is required to proceed"
+command -v git > /dev/null || fail "Git is required to proceed"
 
 # Now, some variables that affect all build scripts
 
@@ -240,12 +236,12 @@ fi
 
 export GCC_STRIP_BINARIES="${GCC_STRIP_BINARIES:-0}"
 
-export SHA256_PROG=`which sha256sum || which gsha256sum`
+export SHA256_PROG=$(command -v gsha256sum || command -v sha256sum)
 if [ -z "$SHA256_PROG" ]; then
     fail "Please install sha256sum or gsha256sum"
 fi
 
-export SORT_PROG=`which gsort || which sort`
+export SORT_PROG=$(command -v gsort || command -v sort)
 if [ -z "$SORT_PROG" ]; then
     fail "Please install sort or gsort"
 fi

@@ -96,7 +96,7 @@ info "Preparing electrum-locale"
     cd "$PROJECT_ROOT"
 
     pushd "$CONTRIB"/electrum-locale
-    if ! which msgfmt > /dev/null 2>&1; then
+    if ! command -v msgfmt > /dev/null 2>&1; then
         fail "Please install gettext"
     fi
     for i in ./locale/*; do
