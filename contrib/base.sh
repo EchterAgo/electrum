@@ -168,6 +168,26 @@ function verlt()
     [ "$1" = "$2" ] && return 1 || verlte $1 $2
 }
 
+function start_apt_cacher()
+{
+    image_name="electroncash-apt-cacher-ng"
+    container_name="ec-apt-cacher-ng-cont"
+
+    if ! $SUDO docker image inspect $image_name > /dev/null 2>&1 ; then
+        info "Creating apt-cacher-ng docker image..."
+        $SUDO docker build -t $image_name contrib/apt-cacher-ng || fail "Failed to create docker image"
+    fi
+
+    if ! $SUDO docker container inspect $container_name > /dev/null 2>&1 ; then
+        info "Starting apt-cacher-ng docker container..."
+        mkdir -p $HOME/.cache/apt-cacher-ng
+        $SUDO docker network create electroncash > /dev/null 2>&1 || true
+        $SUDO docker run --rm -d --network electroncash -p 3142:3142 \
+            -v $HOME/.cache/apt-cacher-ng:/var/cache/apt-cacher-ng \
+            --name $container_name $image_name > /dev/null
+    fi
+}
+
 if [ -n "$_BASE_SH_SOURCED" ] ; then
     # Base.sh has been sourced already, no need to source it again
     return 0
