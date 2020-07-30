@@ -1,14 +1,16 @@
 FROM debian:buster-20200720@sha256:68f4e2259032a4e6f5035804e64438b52af8dd5889528b305b9059183ea4cd2a
 
 ENV DEBIAN_SNAPSHOT=20200726T085317Z
+#ENV DEBIAN_URL=http://snapshot.debian.org
+ENV DEBIAN_URL=https://github.com/EchterAgo/debian_snapshots/raw/master/snapshot.debian.org
 
 ENV http_proxy=http://ec-apt-cacher-ng-cont:3142/
 
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 
-RUN echo "deb http://snapshot.debian.org/archive/debian/$DEBIAN_SNAPSHOT buster main" > /etc/apt/sources.list && \
-    echo "deb http://snapshot.debian.org/archive/debian-security/$DEBIAN_SNAPSHOT buster/updates main" >> /etc/apt/sources.list && \
-    echo "deb http://snapshot.debian.org/archive/debian/$DEBIAN_SNAPSHOT buster-updates main" >> /etc/apt/sources.list
+RUN echo "deb $DEBIAN_URL/archive/debian/$DEBIAN_SNAPSHOT buster main" > /etc/apt/sources.list && \
+    echo "deb $DEBIAN_URL/archive/debian-security/$DEBIAN_SNAPSHOT buster/updates main" >> /etc/apt/sources.list && \
+    echo "deb $DEBIAN_URL/archive/debian/$DEBIAN_SNAPSHOT buster-updates main" >> /etc/apt/sources.list
 
 # We need to disable the validity time check as package lists are only valid until a certain time.
 RUN echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/00snapshot && \
