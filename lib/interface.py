@@ -110,7 +110,11 @@ class TcpConnection(threading.Thread, util.PrintError):
         e = None
         for res in l:
             try:
-                s = socket.socket(res[0], socket.SOCK_STREAM)
+                # Bypass proxy settings when connecting to local electrum server
+                if res[4][0].startswith('192.168.') and hasattr(socket, "_socketobject"):
+                    s = socket._socketobject(res[0], socket.SOCK_STREAM)
+                else:
+                    s = socket.socket(res[0], socket.SOCK_STREAM)
                 s.settimeout(10)
                 s.connect(res[4])
                 s.settimeout(2)
