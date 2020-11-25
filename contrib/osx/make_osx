@@ -126,11 +126,15 @@ else
     mkdir -p ~/.pyenv/cache
     download_if_not_exist ~/.pyenv/cache/Python-$PYTHON_VERSION.tar.xz "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz"
     verify_hash ~/.pyenv/cache/Python-$PYTHON_VERSION.tar.xz $PYTHON_SRC_TARBALL_HASH
+    download_if_not_exist ~/.pyenv/cache/Python-Big-Sur.patch https://github.com/python/cpython/commit/8ea6353.patch
+    verify_hash ~/.pyenv/cache/Python-Big-Sur.patch fd858b7aa612f773a596f71475281bbb87ed982d31476c3d1465b19d757c9d96
 fi
 # The below just switches to this python version if already installed..
 # or does a build-install from the file in ~/.pyenv/cache if not installed
-PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install -s $PYTHON_VERSION && \
-    pyenv global $PYTHON_VERSION && pyenv rehash || \
+PYTHON_CONFIGURE_OPTS="--enable-framework" LDFLAGS="-L$(xcrun --show-sdk-path)/usr/lib" cat ~/.pyenv/cache/Python-Big-Sur.patch | pyenv install -s --patch --force $PYTHON_VERSION || \
+    fail "Unable to use Python $PYTHON_VERSION"
+
+pyenv global $PYTHON_VERSION && pyenv rehash || \
     fail "Unable to use Python $PYTHON_VERSION"
 
 # We use a hashed requirements file for even the build tools to prevent
